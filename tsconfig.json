@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"target": "es2020",
+		"lib": ["es2020", "dom"],
+		"jsx": "react",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"module": "esnext",
+		"rootDir": "./src",
+		"moduleResolution": "node",
+		"baseUrl": "./",
+		"noEmit": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"skipLibCheck": true
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules"],
+	"compileOnSave": false
+}

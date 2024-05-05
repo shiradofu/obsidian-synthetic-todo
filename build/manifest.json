@@ -1,0 +1,10 @@
+{
+	"id": "synthetic-todo",
+	"name": "Synthetic Todo",
+	"version": "0.0.0",
+	"minAppVersion": "0.0.0",
+	"description": "Collect todo items in your vault, pick some of them, and synthesize a new list.",
+	"author": "shiradofu",
+	"authorUrl": "https://github.com/shiradofu",
+	"isDesktopOnly": false
+}

@@ -1,0 +1,31 @@
+{
+	"name": "obsidian-synthetic-todo",
+	"version": "0.0.0",
+	"description": "",
+	"main": "index.ts",
+	"type": "module",
+	"scripts": {
+		"start": "f(){ ln -sfT $PWD/build $1 && tsx scripts/esbuild.ts; };f",
+		"dev": "source .env && npm start -- $LINK_DIR",
+		"ex": "source .env.example && npm start -- $LINK_DIR",
+		"lint": "tsc; biome check .; biome format .",
+		"fix": "biome check --apply . && biome format --write .",
+		"fmt": "biome format --write .",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"ver": "tsx scripts/versioning.ts",
+		"build": "tsc && tsx scripts/esbuild.ts prod"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "1.7.0",
+		"@tsconfig/recommended": "^1.0.6",
+		"@types/node": "^20.12.7",
+		"builtin-modules": "^3.3.0",
+		"esbuild": "0.20.2",
+		"obsidian": "^1.5.7-1",
+		"tsx": "^4.7.2",
+		"typescript": "^5.4.5"
+	}
+}
