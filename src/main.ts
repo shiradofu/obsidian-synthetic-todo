@@ -1,12 +1,13 @@
 import {
+	MarkdownView,
 	Modal,
 	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting,
-	MarkdownView,
 } from "obsidian"
 import type { App, Editor, MarkdownFileInfo } from "obsidian"
+import { serve } from "./service"
 
 interface MyPluginSettings {
 	mySetting: string
@@ -31,9 +32,8 @@ export default class MyPlugin extends Plugin {
 		const ribbonIconEl = this.addRibbonIcon(
 			"dice",
 			"Sample Plugin",
-			(_evt: MouseEvent) => {
-				// Called when the user clicks the icon.
-				new Notice("This is a super nice notice!")
+			async (_evt: MouseEvent) => {
+				await serve({ vault: this.app.vault })
 			},
 		)
 		// Perform additional things with the ribbon
@@ -89,8 +89,8 @@ export default class MyPlugin extends Plugin {
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt)
+		this.registerDomEvent(document, "click", (_evt: MouseEvent) => {
+			// console.log("click", evt)
 		})
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.

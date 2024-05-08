@@ -11,7 +11,7 @@
 		"lint": "tsc; biome check .; biome format .",
 		"fix": "biome check --apply . && biome format --write .",
 		"fmt": "biome format --write .",
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "vitest",
 		"ver": "tsx scripts/versioning.ts",
 		"build": "tsc && tsx scripts/esbuild.ts prod"
 	},
@@ -26,6 +26,7 @@
 		"esbuild": "0.20.2",
 		"obsidian": "^1.5.7-1",
 		"tsx": "^4.7.2",
-		"typescript": "^5.4.5"
+		"typescript": "^5.4.5",
+		"vitest": "^1.6.0"
 	}
 }

@@ -4,7 +4,7 @@
 		"enabled": true
 	},
 	"files": {
-		"ignore": ["example/**"]
+		"ignore": ["build/*", "example/**"]
 	},
 	"vcs": {
 		"enabled": true,

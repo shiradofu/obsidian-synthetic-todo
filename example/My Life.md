@@ -2,4 +2,4 @@
 
 - [ ] Do nothing
 - [ ] Sleep well
-- [ ] Enjoy my vacations
+- [ ] Enjoy vacations
