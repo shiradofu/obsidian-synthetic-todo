@@ -1,13 +1,6 @@
-import {
-	MarkdownView,
-	Modal,
-	Notice,
-	Plugin,
-	PluginSettingTab,
-	Setting,
-} from "obsidian"
-import type { App, Editor, MarkdownFileInfo } from "obsidian"
-import { serve } from "./service"
+import { Plugin, PluginSettingTab, Setting } from "obsidian"
+import type { App, WorkspaceLeaf } from "obsidian"
+import { SyntheticTodoView, VIEW_TYPE_SYNTHETIC_TODO } from "./view"
 
 interface MyPluginSettings {
 	mySetting: string
@@ -27,76 +20,38 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings()
+		this.registerView(
+			VIEW_TYPE_SYNTHETIC_TODO,
+			(leaf) => new SyntheticTodoView(leaf),
+		)
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"dice",
-			"Sample Plugin",
+			"Open View",
 			async (_evt: MouseEvent) => {
-				await serve({ vault: this.app.vault })
+				const query = "tab"
+				let leaf: WorkspaceLeaf | null = null
+				const leaves = this.app.workspace.getLeavesOfType(
+					VIEW_TYPE_SYNTHETIC_TODO,
+				)
+				if (leaves.length > 0) {
+					leaf = leaves[0] ?? null
+				} else {
+					leaf = this.app.workspace.getLeaf("tab")
+					await leaf.setViewState({
+						type: VIEW_TYPE_SYNTHETIC_TODO,
+						active: true,
+						state: { query },
+					})
+				}
+				leaf && this.app.workspace.revealLeaf(leaf)
 			},
 		)
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass("my-plugin-ribbon-class")
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem()
-		statusBarItemEl.setText("Status Bar Text")
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
-			callback: () => {
-				new SampleModal(this.app).open()
-			},
-		})
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: "sample-editor-command",
-			name: "Sample editor command",
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
-				console.log(editor.getSelection())
-				editor.replaceSelection("Sample Editor Command")
-			},
-		})
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView)
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open()
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true
-				}
-			},
-		})
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this))
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (_evt: MouseEvent) => {
-			// console.log("click", evt)
-		})
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		// this.registerInterval(
-		// 	window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000),
-		// )
 	}
 
 	onunload() {}
@@ -107,22 +62,6 @@ export default class MyPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings)
-	}
-}
-
-class SampleModal extends Modal {
-	// constructor(app: App) {
-	// 	super(app)
-	// }
-
-	onOpen() {
-		const { contentEl } = this
-		contentEl.setText("Woah!")
-	}
-
-	onClose() {
-		const { contentEl } = this
-		contentEl.empty()
 	}
 }
 
