@@ -6,6 +6,7 @@ export const VIEW_TYPE_SYNTHETIC_TODO = "synthetic-todo-view"
 
 export class SyntheticTodoView extends ItemView {
 	private query = ""
+	private pinned: string[] = []
 	private files: TFile[] = []
 	private pre: HTMLPreElement | undefined
 
@@ -24,6 +25,9 @@ export class SyntheticTodoView extends ItemView {
 		if ("query" in state && typeof state.query === "string") {
 			this.query = state.query
 		}
+		if ("pinned" in state && Array.isArray(state.pinned)) {
+			this.pinned = state.pinned
+		}
 		if ("files" in state && Array.isArray(state.files)) {
 			this.files = state.files
 		}
@@ -37,7 +41,7 @@ export class SyntheticTodoView extends ItemView {
 	}
 
 	getState() {
-		return { query: this.query, files: this.files }
+		return { query: this.query, files: this.files, pinned: this.pinned }
 	}
 
 	async onClose() {
@@ -80,6 +84,13 @@ export class SyntheticTodoView extends ItemView {
 			}),
 		)
 		const result = itemFarms.filter((f) => f.sections.length > 0)
+		for (const p of [...this.pinned].reverse()) {
+			const i = result.findIndex(({ path }) => path === p)
+			if (i === -1) continue
+			const shouldPinned = result.splice(i, 1)[0]
+			if (!shouldPinned) continue
+			result.unshift(shouldPinned)
+		}
 		const json = JSON.stringify(result, null, 2)
 		this.pre?.setText(json)
 	}

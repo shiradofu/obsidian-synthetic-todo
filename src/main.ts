@@ -30,7 +30,12 @@ export default class MyPlugin extends Plugin {
 			"dice",
 			"Open View",
 			async (_evt: MouseEvent) => {
-				const query = "tab"
+				const query = "dev"
+				const pinned = "Untitled.md\ntabq.md\n"
+					.trim()
+					.split("\n")
+					.filter((p) => p)
+
 				let leaf: WorkspaceLeaf | null = null
 				const leaves = this.app.workspace.getLeavesOfType(
 					VIEW_TYPE_SYNTHETIC_TODO,
@@ -42,7 +47,7 @@ export default class MyPlugin extends Plugin {
 					await leaf.setViewState({
 						type: VIEW_TYPE_SYNTHETIC_TODO,
 						active: true,
-						state: { query },
+						state: { query, pinned },
 					})
 				}
 				leaf && this.app.workspace.revealLeaf(leaf)
