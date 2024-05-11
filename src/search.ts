@@ -10,39 +10,6 @@ import {
 
 let EmbeddedSearch: typeof EmbeddedSearchClass | undefined
 
-const handler: ProxyHandler<typeof EmbeddedSearchClass> = {
-	construct(
-		target,
-		[app, el, query, sourcePath]: ConstructorParameters<
-			typeof EmbeddedSearchClass
-		>,
-	) {
-		const instance = new target(app, el, query, sourcePath)
-		const onload = instance.onload
-		instance.onload = function (this: EmbeddedSearchClass) {
-			if (this.dom === undefined) {
-				throw new Error("EmbeddedSearchClass.dom is undefined")
-			}
-			this.dom.parent = this
-			const startLoader = this.dom.startLoader
-			this.dom.startLoader = function (this: EmbeddedSearchDOMClass) {
-				startLoader.apply(this)
-			}
-			const onChange = this.dom.onChange
-			this.dom.onChange = function (this: EmbeddedSearchDOMClass) {
-				app.workspace.trigger(
-					`SyntheticTodo:EmbeddedSearch:onChange:${query}`,
-					Array.from(this.resultDomLookup.keys()),
-					this.working,
-				)
-				onChange.apply(this)
-			}
-			return onload.apply(this)
-		}
-		return instance
-	},
-}
-
 export async function createEmbeddedSearch(
 	app: App,
 	el: HTMLElement,
@@ -51,6 +18,7 @@ export async function createEmbeddedSearch(
 	if (EmbeddedSearch !== undefined) {
 		return new EmbeddedSearch(app, el, query, "")
 	}
+
 	const original = Component.prototype.addChild
 	const addChildOverride = function <T extends Component>(
 		this: Component,
@@ -63,11 +31,30 @@ export async function createEmbeddedSearch(
 				Object.hasOwn(child, "sourcePath") &&
 				Object.hasOwn(child, "dom")
 			) {
-				const embeddedSearchInstance = child as unknown as EmbeddedSearchClass
-				EmbeddedSearch = new Proxy(
-					embeddedSearchInstance.constructor as typeof EmbeddedSearchClass,
-					handler,
-				)
+				EmbeddedSearch = class extends (
+					(child.constructor as typeof EmbeddedSearchClass)
+				) {
+					onload(): void {
+						if (!this.dom) {
+							throw new Error("EmbeddedSearchClass.dom is undefined")
+						}
+						this.dom.parent = this
+						const startLoader = this.dom.startLoader
+						this.dom.startLoader = function (this: EmbeddedSearchDOMClass) {
+							startLoader.apply(this)
+						}
+						const onChange = this.dom.onChange
+						this.dom.onChange = function (this: EmbeddedSearchDOMClass) {
+							app.workspace.trigger(
+								`SyntheticTodo:EmbeddedSearch:onChange:${query}`,
+								Array.from(this.resultDomLookup.keys()),
+								this.working,
+							)
+							onChange.apply(this)
+						}
+						super.onload()
+					}
+				}
 			}
 		} catch (err) {
 			console.error(err)
