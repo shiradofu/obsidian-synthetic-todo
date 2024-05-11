@@ -27,16 +27,22 @@ export default class MyPlugin extends Plugin {
 			"dice",
 			"Open View",
 			async (_evt: MouseEvent) => {
-				const query = "dev"
-				const pinned = "Untitled.md\ntabq.md\n"
+				const query = "todo OR tag:#test OR path:test/"
+				const pinned = "Obsidian Synthetic Todo.md\nUntitled.md\n"
 					.trim()
 					.split("\n")
 					.map((p) => p.trim())
 					.filter((p) => p)
+				const tagsAndFoldersForFileNameItems = "test/:#test:"
+					.trim()
+					.split(":")
+					.map((i) => i.trim())
+					.filter((i) => i.startsWith("#") || i.endsWith("/"))
 
 				await SyntheticTodoView.open(this.app.workspace, {
 					query,
 					pinned,
+					tagsAndFoldersForFileNameItems,
 				})
 			},
 		)

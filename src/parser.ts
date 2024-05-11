@@ -59,6 +59,7 @@ export class Parser {
 		return {
 			path: filePath,
 			sections,
+			itemType: "checkbox",
 		}
 	}
 

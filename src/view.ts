@@ -7,12 +7,14 @@ import {
 } from "obsidian"
 import { Parser } from "./parser"
 import { createEmbeddedSearch } from "./search"
+import { ItemTree, type ItemFarm } from "./item"
 
 const t = "synthetic-todo-view"
 
 type InitialState = {
 	query: string
 	pinned: string[]
+	tagsAndFoldersForFileNameItems: string[]
 }
 
 type State = InitialState & {
@@ -23,6 +25,7 @@ export class SyntheticTodoView extends ItemView {
 	private query = ""
 	private pinned: string[] = []
 	private files: TFile[] = []
+	private tagsAndFoldersForFileNameItems: string[] = []
 	private pre: HTMLPreElement | undefined
 
 	public static register() {
@@ -48,6 +51,7 @@ export class SyntheticTodoView extends ItemView {
 	async setState(state: InitialState | State, result: ViewStateResult) {
 		this.query = state.query
 		this.pinned = state.pinned
+		this.tagsAndFoldersForFileNameItems = state.tagsAndFoldersForFileNameItems
 		if ("files" in state) {
 			this.files = state.files
 		}
@@ -65,6 +69,7 @@ export class SyntheticTodoView extends ItemView {
 			query: this.query,
 			files: this.files,
 			pinned: this.pinned,
+			tagsAndFoldersForFileNameItems: this.tagsAndFoldersForFileNameItems,
 		}
 	}
 
@@ -100,20 +105,64 @@ export class SyntheticTodoView extends ItemView {
 	}
 
 	async renderData() {
+		const { tagsForFileNameItems, pathsForFileNameItems } =
+			this.tagsAndFoldersForFileNameItems.reduce(
+				(acc, x) => {
+					x.startsWith("#")
+						? acc.tagsForFileNameItems.push(x)
+						: acc.pathsForFileNameItems.push(x)
+					return acc
+				},
+				{
+					tagsForFileNameItems: [] as string[],
+					pathsForFileNameItems: [] as string[],
+				},
+			)
+		const fileNameItemMap: Record<string, string[]> = {}
 		const itemFarms = await Promise.all(
-			this.files.map(async (f) => {
+			this.files.flatMap(async (f) => {
+				const fileTags = this.app.metadataCache
+					.getFileCache(f)
+					?.tags?.map((t) => t.tag)
+				const matchedTag = tagsForFileNameItems.find((t) =>
+					fileTags?.contains(t),
+				)
+				if (matchedTag) {
+					if (!fileNameItemMap[matchedTag]) fileNameItemMap[matchedTag] = []
+					;(fileNameItemMap[matchedTag] as string[]).push(f.path)
+					return
+				}
+				const matchedPath = pathsForFileNameItems.find((path) =>
+					f.path.startsWith(path),
+				)
+				if (matchedPath) {
+					if (!fileNameItemMap[matchedPath]) fileNameItemMap[matchedPath] = []
+					;(fileNameItemMap[matchedPath] as string[]).push(f.path)
+					return
+				}
 				const fileContents = await this.app.vault.cachedRead(f)
 				const parser = new Parser()
 				return parser.parse(f.path, fileContents)
 			}),
 		)
-		const result = itemFarms.filter((f) => f.sections.length > 0)
+		const result = itemFarms.filter(
+			(f): f is ItemFarm => !!f && f.sections.length > 0,
+		)
 		for (const p of [...this.pinned].reverse()) {
 			const i = result.findIndex(({ path }) => path === p)
 			if (i === -1) continue
 			const shouldPinned = result.splice(i, 1)[0]
 			if (!shouldPinned) continue
 			result.unshift(shouldPinned)
+		}
+		for (const tagOrFolder of this.tagsAndFoldersForFileNameItems) {
+			const items = fileNameItemMap[tagOrFolder]
+			if (items === undefined) continue
+			result.push({
+				path: tagOrFolder,
+				sections: [{ trees: items.map((i) => new ItemTree(i)) }],
+				itemType: "fileName",
+			})
 		}
 		const json = JSON.stringify(result, null, 2)
 		this.pre?.setText(json)

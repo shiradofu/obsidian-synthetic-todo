@@ -28,4 +28,5 @@ export type ItemFarmSection = {
 export type ItemFarm = {
 	path: string
 	sections: ItemFarmSection[]
+	itemType: "checkbox" | "fileName"
 }
