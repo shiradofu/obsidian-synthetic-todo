@@ -14,9 +14,10 @@ export async function createEmbeddedSearch(
 	app: App,
 	el: HTMLElement,
 	query: string,
+	sortOrder?: string,
 ) {
 	if (EmbeddedSearch !== undefined) {
-		return new EmbeddedSearch(app, el, query, "")
+		return new EmbeddedSearch(app, el, query, sortOrder ?? "")
 	}
 
 	const original = Component.prototype.addChild
@@ -34,15 +35,24 @@ export async function createEmbeddedSearch(
 				EmbeddedSearch = class extends (
 					(child.constructor as typeof EmbeddedSearchClass)
 				) {
+					private sortOrder: string
+
+					constructor(
+						app: App,
+						el: HTMLElement,
+						query: string,
+						sortOrder: string,
+					) {
+						super(app, el, query, "")
+						this.sortOrder = sortOrder || "byModifiedTime"
+					}
+
 					onload(): void {
 						if (!this.dom) {
 							throw new Error("EmbeddedSearchClass.dom is undefined")
 						}
 						this.dom.parent = this
-						const startLoader = this.dom.startLoader
-						this.dom.startLoader = function (this: EmbeddedSearchDOMClass) {
-							startLoader.apply(this)
-						}
+						this.dom.sortOrder = this.sortOrder
 						const onChange = this.dom.onChange
 						this.dom.onChange = function (this: EmbeddedSearchDOMClass) {
 							app.workspace.trigger(
@@ -101,6 +111,6 @@ export async function createEmbeddedSearch(
 		app,
 		el,
 		query,
-		"",
+		sortOrder ?? "",
 	)
 }
