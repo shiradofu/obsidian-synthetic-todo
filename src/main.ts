@@ -1,6 +1,6 @@
+import type { App } from "obsidian"
 import { Plugin, PluginSettingTab, Setting } from "obsidian"
-import type { App, WorkspaceLeaf } from "obsidian"
-import { SyntheticTodoView, VIEW_TYPE_SYNTHETIC_TODO } from "./view"
+import { SyntheticTodoView } from "./view"
 
 interface MyPluginSettings {
 	mySetting: string
@@ -20,10 +20,7 @@ export default class MyPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings()
-		this.registerView(
-			VIEW_TYPE_SYNTHETIC_TODO,
-			(leaf) => new SyntheticTodoView(leaf),
-		)
+		this.registerView(...SyntheticTodoView.register())
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
@@ -34,23 +31,13 @@ export default class MyPlugin extends Plugin {
 				const pinned = "Untitled.md\ntabq.md\n"
 					.trim()
 					.split("\n")
+					.map((p) => p.trim())
 					.filter((p) => p)
 
-				let leaf: WorkspaceLeaf | null = null
-				const leaves = this.app.workspace.getLeavesOfType(
-					VIEW_TYPE_SYNTHETIC_TODO,
-				)
-				if (leaves.length > 0) {
-					leaf = leaves[0] ?? null
-				} else {
-					leaf = this.app.workspace.getLeaf("tab")
-					await leaf.setViewState({
-						type: VIEW_TYPE_SYNTHETIC_TODO,
-						active: true,
-						state: { query, pinned },
-					})
-				}
-				leaf && this.app.workspace.revealLeaf(leaf)
+				await SyntheticTodoView.open(this.app.workspace, {
+					query,
+					pinned,
+				})
 			},
 		)
 		// Perform additional things with the ribbon

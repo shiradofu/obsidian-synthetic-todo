@@ -1,8 +1,23 @@
-import { ItemView, type TFile, type ViewStateResult } from "obsidian"
+import {
+	ItemView,
+	type TFile,
+	type ViewStateResult,
+	type Workspace,
+	type WorkspaceLeaf,
+} from "obsidian"
 import { Parser } from "./parser"
 import { createEmbeddedSearch } from "./search"
 
-export const VIEW_TYPE_SYNTHETIC_TODO = "synthetic-todo-view"
+const t = "synthetic-todo-view"
+
+type InitialState = {
+	query: string
+	pinned: string[]
+}
+
+type State = InitialState & {
+	files: TFile[]
+}
 
 export class SyntheticTodoView extends ItemView {
 	private query = ""
@@ -10,25 +25,30 @@ export class SyntheticTodoView extends ItemView {
 	private files: TFile[] = []
 	private pre: HTMLPreElement | undefined
 
+	public static register() {
+		return [t, (leaf: WorkspaceLeaf) => new SyntheticTodoView(leaf)] as const
+	}
+
+	public static async open(workspace: Workspace, state: InitialState) {
+		const leaves = workspace.getLeavesOfType(t)
+		if (leaves[0]) return workspace.revealLeaf(leaves[0])
+		const leaf = workspace.getLeaf("tab")
+		await leaf.setViewState({ type: t, active: true, state })
+		workspace.revealLeaf(leaf)
+	}
+
 	getViewType() {
-		return VIEW_TYPE_SYNTHETIC_TODO
+		return t
 	}
 
 	getDisplayText() {
 		return "Synthetic Todo"
 	}
 
-	async setState(state: unknown, result: ViewStateResult) {
-		if (state === null || typeof state !== "object") {
-			return super.setState(state, result)
-		}
-		if ("query" in state && typeof state.query === "string") {
-			this.query = state.query
-		}
-		if ("pinned" in state && Array.isArray(state.pinned)) {
-			this.pinned = state.pinned
-		}
-		if ("files" in state && Array.isArray(state.files)) {
+	async setState(state: InitialState | State, result: ViewStateResult) {
+		this.query = state.query
+		this.pinned = state.pinned
+		if ("files" in state) {
 			this.files = state.files
 		}
 		this.app.workspace.on(
@@ -40,8 +60,12 @@ export class SyntheticTodoView extends ItemView {
 		return super.setState(state, result)
 	}
 
-	getState() {
-		return { query: this.query, files: this.files, pinned: this.pinned }
+	getState(): State {
+		return {
+			query: this.query,
+			files: this.files,
+			pinned: this.pinned,
+		}
 	}
 
 	async onClose() {
