@@ -4,21 +4,70 @@ import {
 	type EmbeddedSearchClass,
 	type EmbeddedSearchDOMClass,
 	MarkdownView,
+	type TFile,
 	type Workspace,
 	WorkspaceSplit,
 } from "obsidian"
 
-let EmbeddedSearch: typeof EmbeddedSearchClass | undefined
+type SearchOnChangeListener = (files: TFile[], working: boolean) => void
+interface IExtendedEmbeddedSearch extends EmbeddedSearchClass {
+	addListener(listener: SearchOnChangeListener): void
+}
+interface ExtendedEmbeddedSearchClass {
+	new (
+		app: App,
+		el: HTMLElement,
+		query: string,
+		sortOrder: string,
+	): IExtendedEmbeddedSearch
+}
+let ExtendedEmbeddedSearch: ExtendedEmbeddedSearchClass | undefined
+
+const defineClass = (EmbeddedSearch: typeof EmbeddedSearchClass) => {
+	ExtendedEmbeddedSearch = class extends EmbeddedSearch {
+		private sortOrder: string
+		private listeners: SearchOnChangeListener[] = []
+
+		constructor(app: App, el: HTMLElement, query: string, sortOrder: string) {
+			super(app, el, query, "")
+			this.sortOrder = sortOrder || "byModifiedTime"
+		}
+
+		addListener(listener: SearchOnChangeListener) {
+			this.listeners.push(listener)
+		}
+
+		onload(): void {
+			if (!this.dom) {
+				throw new Error("EmbeddedSearchClass.dom is undefined")
+			}
+			this.dom.parent = this
+			this.dom.sortOrder = this.sortOrder
+			const onChange = this.dom.onChange
+			const listeners = this.listeners
+			this.dom.onChange = function (this: EmbeddedSearchDOMClass) {
+				for (const listener of listeners) {
+					listener(Array.from(this.resultDomLookup.keys()), this.working)
+				}
+				onChange.apply(this)
+			}
+			super.onload()
+		}
+	}
+}
 
 export async function createEmbeddedSearch(
 	app: App,
 	el: HTMLElement,
 	query: string,
-	sortOrder?: string,
+	sortOrder = "",
 ) {
-	if (EmbeddedSearch !== undefined) {
-		return new EmbeddedSearch(app, el, query, sortOrder ?? "")
+	const createIfPossible = () => {
+		if (ExtendedEmbeddedSearch === undefined) return
+		return new ExtendedEmbeddedSearch(app, el, query, sortOrder)
 	}
+	const maybeInstance = createIfPossible()
+	if (maybeInstance) return maybeInstance
 
 	const original = Component.prototype.addChild
 	const addChildOverride = function <T extends Component>(
@@ -32,45 +81,12 @@ export async function createEmbeddedSearch(
 				Object.hasOwn(child, "sourcePath") &&
 				Object.hasOwn(child, "dom")
 			) {
-				EmbeddedSearch = class extends (
-					(child.constructor as typeof EmbeddedSearchClass)
-				) {
-					private sortOrder: string
-
-					constructor(
-						app: App,
-						el: HTMLElement,
-						query: string,
-						sortOrder: string,
-					) {
-						super(app, el, query, "")
-						this.sortOrder = sortOrder || "byModifiedTime"
-					}
-
-					onload(): void {
-						if (!this.dom) {
-							throw new Error("EmbeddedSearchClass.dom is undefined")
-						}
-						this.dom.parent = this
-						this.dom.sortOrder = this.sortOrder
-						const onChange = this.dom.onChange
-						this.dom.onChange = function (this: EmbeddedSearchDOMClass) {
-							app.workspace.trigger(
-								`SyntheticTodo:EmbeddedSearch:onChange:${query}`,
-								Array.from(this.resultDomLookup.keys()),
-								this.working,
-							)
-							onChange.apply(this)
-						}
-						super.onload()
-					}
-				}
+				defineClass(child.constructor as typeof EmbeddedSearchClass)
 			}
 		} catch (err) {
 			console.error(err)
 		}
-		const result = original.call<Component, [T], T>(this, child)
-		return result
+		return original.call<Component, [T], T>(this, child)
 	}
 
 	try {
@@ -104,13 +120,5 @@ export async function createEmbeddedSearch(
 		Component.prototype.addChild = original
 	}
 
-	if (!EmbeddedSearch) {
-		throw new Error("Failed to catch EmbeddedSearchClass")
-	}
-	return new (EmbeddedSearch as unknown as typeof EmbeddedSearchClass)(
-		app,
-		el,
-		query,
-		sortOrder ?? "",
-	)
+	return createIfPossible()
 }

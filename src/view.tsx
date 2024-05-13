@@ -5,34 +5,39 @@ import {
 	type Workspace,
 	type WorkspaceLeaf,
 } from "obsidian"
+import { StrictMode } from "react"
+import { type Root, createRoot } from "react-dom/client"
+import { UI } from "./UI"
+import { type ItemFarm, ItemTree } from "./item"
 import { Parser } from "./parser"
 import { createEmbeddedSearch } from "./search"
-import { ItemTree, type ItemFarm } from "./item"
 
 const t = "synthetic-todo-view"
 
-type InitialState = {
+type InitialStates = {
 	query: string
 	pinned: string[]
 	tagsAndFoldersForFileNameItems: string[]
 }
 
-type State = InitialState & {
+type States = InitialStates & {
 	files: TFile[]
 }
 
 export class SyntheticTodoView extends ItemView {
-	private query = ""
+	public query = ""
 	private pinned: string[] = []
-	private files: TFile[] = []
 	private tagsAndFoldersForFileNameItems: string[] = []
+	private reactRoot: Root | null = null
 	private pre: HTMLPreElement | undefined
+	private filesListeners: ((files: TFile[]) => void)[] = []
+	private _files: TFile[] = []
 
 	public static register() {
 		return [t, (leaf: WorkspaceLeaf) => new SyntheticTodoView(leaf)] as const
 	}
 
-	public static async open(workspace: Workspace, state: InitialState) {
+	public static async open(workspace: Workspace, state: InitialStates) {
 		const leaves = workspace.getLeavesOfType(t)
 		if (leaves[0]) return workspace.revealLeaf(leaves[0])
 		const leaf = workspace.getLeaf("tab")
@@ -40,31 +45,41 @@ export class SyntheticTodoView extends ItemView {
 		workspace.revealLeaf(leaf)
 	}
 
-	getViewType() {
+	private get files() {
+		return this._files
+	}
+
+	private set files(newFiles: TFile[]) {
+		this._files = newFiles
+		for (const listener of this.filesListeners) {
+			listener(newFiles)
+		}
+	}
+
+	public getViewType() {
 		return t
 	}
 
-	getDisplayText() {
+	public getDisplayText() {
 		return "Synthetic Todo"
 	}
 
-	async setState(state: InitialState | State, result: ViewStateResult) {
+	public async setState(
+		state: InitialStates | States,
+		result: ViewStateResult,
+	) {
 		this.query = state.query
 		this.pinned = state.pinned
 		this.tagsAndFoldersForFileNameItems = state.tagsAndFoldersForFileNameItems
 		if ("files" in state) {
 			this.files = state.files
 		}
-		this.app.workspace.on(
-			`SyntheticTodo:EmbeddedSearch:onChange:${this.query}`,
-			this.onSearchChange,
-		)
 		await this.renderFrame()
 		await this.renderData()
 		return super.setState(state, result)
 	}
 
-	getState(): State {
+	public getState(): States {
 		return {
 			query: this.query,
 			files: this.files,
@@ -73,38 +88,54 @@ export class SyntheticTodoView extends ItemView {
 		}
 	}
 
-	async onClose() {
-		this.app.workspace.off(
-			`SyntheticTodo:EmbeddedSearch:onChange:${this.query}`,
-			this.onSearchChange,
-		)
+	public async onClose() {
+		this.reactRoot?.unmount()
 	}
 
-	onSearchChange = async (files: TFile[], working: boolean) => {
+	private onSearchChange = async (files: TFile[], working: boolean) => {
 		if (working) {
 			const paths = new Set(this.files.map((f) => f.path))
 			const newFiles = files.filter((f) => !paths.has(f.path))
-			this.files.push(...newFiles)
+			this.files = [...this.files, ...newFiles]
 		} else {
 			this.files = files
 		}
 		await this.renderData()
 	}
 
-	async renderFrame() {
+	private registerListener = (callback: (files: TFile[]) => void) => {
+		this.filesListeners.push(callback)
+	}
+
+	private async renderFrame() {
 		const container = this.containerEl.children[1]
 		if (container === undefined) return
 		container.empty()
 		container.createEl("h4", { text: `query: ${this.query}` })
 
-		const div = container.createEl("div")
-		div.style.display = "none"
-		this.addChild(await createEmbeddedSearch(this.app, div, this.query))
+		const searchEl = container.createEl("div")
+		searchEl.style.display = "none"
+		const es = await createEmbeddedSearch(
+			this.app,
+			searchEl,
+			this.query,
+			"byModifiedTime",
+		)
+		if (!es) throw new Error("failed to create search insatance")
+		es.addListener(this.onSearchChange)
+		this.addChild(es)
 
+		const reactEl = container.createEl("div")
+		this.reactRoot = createRoot(reactEl)
+		this.reactRoot.render(
+			<StrictMode>
+				<UI registerListener={this.registerListener} />
+			</StrictMode>,
+		)
 		this.pre = container.createEl("pre")
 	}
 
-	async renderData() {
+	private async renderData() {
 		const { tagsForFileNameItems, pathsForFileNameItems } =
 			this.tagsAndFoldersForFileNameItems.reduce(
 				(acc, x) => {

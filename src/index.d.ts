@@ -1,14 +1,6 @@
 import "obsidian"
 
 declare module "obsidian" {
-	export interface Workspace extends Events {
-		on(
-			name: `SyntheticTodo:EmbeddedSearch:onChange:${string}`,
-			callback: (files: TFile[], working: boolean) => void,
-			ctx?: unknown,
-		): EventRef
-	}
-
 	class EmbeddedSearchClass extends MarkdownRenderChild {
 		constructor(app: App, el: HTMLElement, query: string, sourcePath: string)
 		dom?: EmbeddedSearchDOMClass
