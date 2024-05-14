@@ -1,21 +1,79 @@
-import type { TFile } from "obsidian"
 import { useEffect, useState } from "react"
+import type {
+	CheckboxItem,
+	CheckboxItemFarm,
+	FileNameItemFarm,
+	ItemFarm,
+} from "./model"
 
 type Props = {
-	registerListener: (callback: (files: TFile[]) => void) => void
+	registerListener: (callback: (itemFarms: ItemFarm[]) => void) => void
+}
+
+const renderItemRecursive = (items: CheckboxItem[], parentText: string) => {
+	return (
+		<>
+			{items.map((item) => {
+				return (
+					<li key={`${parentText}/${item.text}`}>
+						[{item.status}] {item.text}
+						{item.children.length > 0 && (
+							<ul>{renderItemRecursive(item.children, item.text)}</ul>
+						)}
+					</li>
+				)
+			})}
+		</>
+	)
+}
+
+const CheckboxItemFarmCard = ({ farm }: { farm: CheckboxItemFarm }) => {
+	return (
+		<div>
+			<h2>{farm.path}</h2>
+			{farm.segments.map((s) => {
+				return (
+					<div key={s.heading ?? ""}>
+						{s.heading && <h3>{s.heading}</h3>}
+						<ul>{renderItemRecursive(s.items, "")}</ul>
+					</div>
+				)
+			})}
+		</div>
+	)
+}
+
+const FileNameItemFarmCard = ({ farm }: { farm: FileNameItemFarm }) => {
+	return (
+		<div>
+			<h2>{farm.tagOrFolder}</h2>
+			<div>
+				<ul>
+					{farm.segments[0]?.items.map((item) => {
+						return <li key={item.path}>{item.path}</li>
+					})}
+				</ul>
+			</div>
+		</div>
+	)
 }
 
 export const UI = ({ registerListener }: Props) => {
-	const [files, setFiles] = useState<TFile[]>([])
+	const [files, setFiles] = useState<ItemFarm[]>([])
 	useEffect(() => {
-		registerListener((files) => setFiles(files))
+		return registerListener((farms) => setFiles(farms))
 	}, [registerListener])
 
 	return (
-		<ul>
+		<div>
 			{files.map((f) => {
-				return <li key={f.path}>{f.path}</li>
+				switch (f.itemType) {
+					case "checkbox":
+						return <CheckboxItemFarmCard key={f.path} farm={f} />
+					case "fileName":
+						return <FileNameItemFarmCard key={f.tagOrFolder} farm={f} />
+				}
 			})}
-		</ul>
+		</div>
 	)
 }
