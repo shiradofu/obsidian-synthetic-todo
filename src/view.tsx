@@ -11,17 +11,20 @@ import { UI } from "./UI"
 import type { ItemFarm } from "./model"
 import { Parser } from "./parser"
 import { createEmbeddedSearch } from "./search"
+import type { SortOrder } from "./settings"
 
 const t = "synthetic-todo-view" as const
 
 type States = {
 	query: string
+	sort: SortOrder
 	pinned: string[]
 	tagsAndFoldersForFileNameItems: string[]
 }
 
 export class SyntheticTodoView extends ItemView {
 	public query = ""
+	private sort: SortOrder = "alphabetical"
 	private pinned: string[] = []
 	private tagsAndFoldersForFileNameItems: string[] = []
 	private parser?: Parser
@@ -50,6 +53,7 @@ export class SyntheticTodoView extends ItemView {
 
 	public async setState(state: States, result: ViewStateResult) {
 		this.query = state.query
+		this.sort = state.sort
 		this.pinned = state.pinned
 		this.tagsAndFoldersForFileNameItems = state.tagsAndFoldersForFileNameItems
 		this.parser = new Parser(
@@ -64,6 +68,7 @@ export class SyntheticTodoView extends ItemView {
 	public getState(): States {
 		return {
 			query: this.query,
+			sort: this.sort,
 			pinned: this.pinned,
 			tagsAndFoldersForFileNameItems: this.tagsAndFoldersForFileNameItems,
 		}
@@ -93,7 +98,7 @@ export class SyntheticTodoView extends ItemView {
 			this.app,
 			searchEl,
 			this.query,
-			"byModifiedTime",
+			this.sort,
 		)
 		if (!es) throw new Error("failed to create search insatance")
 		es.addListener(this.onSearchChange)

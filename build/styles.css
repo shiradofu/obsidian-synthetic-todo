@@ -1,0 +1,51 @@
+.synthetic-todo-synthe-settings-container {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.synthetic-todo-settings-unit {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--modal-radius);
+	padding: 15px;
+}
+
+.synthetic-todo-settings-unit-buttons {
+	display: flex;
+	justify-content: space-between;
+}
+
+.synthetic-todo-settings-unit-buttons div {
+	display: flex;
+	gap: 10px;
+}
+
+button.synthetic-todo-settings-unit-remove {
+	color: var(--color-red);
+}
+
+button.synthetic-todo-settings-unit-add {
+	display: block;
+	margin-left: auto;
+}
+
+.synthetic-todo-settings-unit .setting-item {
+	flex-wrap: wrap;
+	border-top: none;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.synthetic-todo-settings-unit .setting-item-control input,
+.synthetic-todo-settings-unit .setting-item-control textarea {
+	width: 80%;
+}
+
+.synthetic-todo-setting-item-error-text {
+	flex-basis: 100%;
+	color: var(--color-red);
+	text-align: end;
+}
+
+.synthetic-todo-settings-unit-error {
+	opacity: 60%;
+}

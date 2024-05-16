@@ -1,94 +1,24 @@
-import type { App } from "obsidian"
-import { Plugin, PluginSettingTab, Setting } from "obsidian"
+import { Plugin } from "obsidian"
+import { SyntheticTodoSettings } from "./settings"
 import { SyntheticTodoView } from "./view"
 
-interface MyPluginSettings {
-	mySetting: string
-}
-
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
-}
-
-const must = <T>(x: T | undefined): T => {
-	if (x === undefined) throw new Error("unexpected undefined")
-	return x
-}
-
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings | undefined
-
+export default class SyntheticTodo extends Plugin {
 	async onload() {
-		await this.loadSettings()
+		const settings = new SyntheticTodoSettings(this.app, this)
+		await settings.load()
+		this.addSettingTab(settings.tab)
+
 		this.registerView(...SyntheticTodoView.register())
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
-			"Open View",
-			async (_evt: MouseEvent) => {
-				const query = "todo OR tag:#test OR path:test/"
-				const pinned = "Obsidian Synthetic Todo.md\nUntitled.md\n"
-					.trim()
-					.split("\n")
-					.map((p) => p.trim())
-					.filter((p) => p)
-				const tagsAndFoldersForFileNameItems = "test/:#test:"
-					.trim()
-					.split(":")
-					.map((i) => i.trim())
-					.filter((i) => i.startsWith("#") || i.endsWith("/"))
-
-				await SyntheticTodoView.open(this.app.workspace, {
-					query,
-					pinned,
-					tagsAndFoldersForFileNameItems,
-				})
-			},
-		)
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass("my-plugin-ribbon-class")
-
-		this.addSettingTab(new SampleSettingTab(this.app, this))
+		this.addRibbonIcon("checkbox-glyph", "Open View", async () => {
+			// for debugging
+			// biome-ignore lint: lint/suspicious/noExplicitAny
+			const { commands } = this.app.commands as any
+			const key = "synthetic-todo:test"
+			if (!commands[key]) return console.error("command not found")
+			commands[key].callback()
+		})
 	}
 
 	onunload() {}
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings)
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin)
-		this.plugin = plugin
-	}
-
-	display(): void {
-		const { containerEl } = this
-
-		containerEl.empty()
-
-		if (this.plugin.settings !== undefined) {
-			new Setting(containerEl)
-				.setName("Setting #1")
-				.setDesc("It's a secret")
-				.addText((text) =>
-					text
-						.setPlaceholder("Enter your secret")
-						.setValue(must(this.plugin.settings).mySetting)
-						.onChange(async (value) => {
-							must(this.plugin.settings).mySetting = value
-							await this.plugin.saveSettings()
-						}),
-				)
-		}
-	}
 }

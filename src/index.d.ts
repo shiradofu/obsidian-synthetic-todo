@@ -1,6 +1,12 @@
 import "obsidian"
 
 declare module "obsidian" {
+	interface App {
+		commands: {
+			removeCommand(commandId: string): void
+		}
+	}
+
 	class EmbeddedSearchClass extends MarkdownRenderChild {
 		constructor(app: App, el: HTMLElement, query: string, sourcePath: string)
 		dom?: EmbeddedSearchDOMClass
