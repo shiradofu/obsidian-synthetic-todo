@@ -149,6 +149,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			this.renderUnit(syntheSettingsContainer, newUnit)
 		})
 		button.setText("Add New Synthe Settings")
+		this.validateSyntheSettings()
 	}
 
 	private renderUnit(el: HTMLElement, data: SyntheSettingsUnit) {
