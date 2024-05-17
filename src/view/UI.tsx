@@ -4,7 +4,7 @@ import type {
 	CheckboxItemFarm,
 	FileNameItemFarm,
 	ItemFarm,
-} from "./model"
+} from "../model"
 
 type Props = {
 	registerListener: (callback: (itemFarms: ItemFarm[]) => void) => void

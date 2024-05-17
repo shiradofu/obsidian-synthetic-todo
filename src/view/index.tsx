@@ -8,10 +8,10 @@ import {
 import { StrictMode } from "react"
 import { type Root, createRoot } from "react-dom/client"
 import { UI } from "./UI"
-import type { ItemFarm } from "./model"
-import { Parser } from "./parser"
-import { createEmbeddedSearch } from "./search"
-import type { SortOrder } from "./settings"
+import type { ItemFarm } from "../model"
+import { Parser } from "../parser"
+import { createEmbeddedSearch } from "../search"
+import type { SortOrder } from "../settings"
 
 const t = "synthetic-todo-view" as const
 
