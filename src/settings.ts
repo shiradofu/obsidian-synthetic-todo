@@ -17,9 +17,9 @@ const sortOrderOptions = {
 export type SortOrder = keyof typeof sortOrderOptions
 
 const groupByFileNameOptions = {
-	none: "disable grouping",
-	heading: "group using heading",
-	parent: "group using tree parent",
+	none: "No grouping",
+	heading: "Heading",
+	treeParent: "Tree parent",
 } as const
 type GroupByFileName = keyof typeof groupByFileNameOptions
 
@@ -46,7 +46,7 @@ const emptySyntheSettingsUnit: SyntheSettingsUnit = {
 	pinned: "",
 	tagsAndFoldersForFileNameItems: "",
 	checkboxStatus: "",
-	groupByFileName: "parent",
+	groupByFileName: "treeParent",
 }
 
 const addSpacerDiv = (el: HTMLElement, direction: "x" | "y", size: string) => {
