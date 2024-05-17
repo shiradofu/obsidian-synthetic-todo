@@ -1,8 +1,10 @@
 import { type App, PluginSettingTab, Setting } from "obsidian"
 import { APP_ID } from "./constants"
-import { c } from "./helper"
 import type SyntheticTodo from "./main"
 import { SyntheticTodoView } from "./view"
+
+const containerId = `${APP_ID}-settings`
+const c = (cls: string) => `${containerId}-${cls}`
 
 const sortOrderOptions = {
 	alphabetical: "File name (A to Z)",
@@ -128,9 +130,10 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 	public display(): void {
 		const { containerEl } = this
 		containerEl.empty()
+		containerEl.id = containerId
 
 		const syntheSettingsContainer = containerEl.createEl("div")
-		syntheSettingsContainer.addClass(c("synthe-settings-container"))
+		syntheSettingsContainer.addClass(c("synthe-units"))
 
 		this.settings.store.synthe.map((s) => {
 			this.renderUnit(syntheSettingsContainer, s)
@@ -139,7 +142,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 		addSpacerDiv(containerEl, "x", "20px")
 		const buttonContainer = containerEl.createEl("div")
 		const button = buttonContainer.createEl("button")
-		button.addClass(c("settings-unit-add"))
+		button.addClass(c("unit-add"))
 		button.addEventListener("click", () => {
 			const newUnit = { ...emptySyntheSettingsUnit }
 			this.settings.store.synthe.push(newUnit)
@@ -150,7 +153,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 
 	private renderUnit(el: HTMLElement, data: SyntheSettingsUnit) {
 		const unitContainer = el.createEl("div")
-		unitContainer.addClass(c("settings-unit"))
+		unitContainer.addClass(c("synthe-unit"))
 		const onChange = this.onChangeSyntheSettings(data)
 
 		new Setting(unitContainer)
@@ -207,7 +210,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 				t
 					.setValue(data.checkboxStatus)
 					.setPlaceholder(
-						"by default, all statuses are included.\nlist chars with no space.",
+						"By default, all statuses are included.\nList chars here with no space.",
 					)
 					.onChange(onChange("checkboxStatus")),
 			)
@@ -223,12 +226,12 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			)
 
 		addSpacerDiv(unitContainer, "x", "10px")
-		const buttonsContainer = unitContainer.createEl("div")
-		buttonsContainer.addClass(c("settings-unit-buttons"))
-		const buttonsLeft = buttonsContainer.createEl("div")
-		const removeButton = buttonsLeft.createEl("button")
+		const footer = unitContainer.createEl("div")
+		footer.addClass(c("synthe-unit-footer"))
+		const footerLeft = footer.createEl("div")
+		const removeButton = footerLeft.createEl("button")
 		removeButton.setText("remove this settings")
-		removeButton.addClass(c("settings-unit-remove"))
+		removeButton.addClass(c("danger"))
 		removeButton.addEventListener("click", () => {
 			this.settings.store.synthe = this.settings.store.synthe.filter(
 				(s) => s !== data,
@@ -237,8 +240,8 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			this.save()
 		})
 
-		const buttonsRight = buttonsContainer.createEl("div")
-		const moveUpButton = buttonsRight.createEl("button")
+		const footerRight = footer.createEl("div")
+		const moveUpButton = footerRight.createEl("button")
 		moveUpButton.setText("↑")
 		moveUpButton.addEventListener("click", async () => {
 			const { synthe } = this.settings.store
@@ -252,7 +255,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			unitContainer.scrollIntoView(true)
 			await this.save()
 		})
-		const moveDownButton = buttonsRight.createEl("button")
+		const moveDownButton = footerRight.createEl("button")
 		moveDownButton.setText("↓")
 		moveDownButton.addEventListener("click", async () => {
 			const { synthe } = this.settings.store
@@ -280,11 +283,11 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 		}
 
 	private validateSyntheSettings() {
-		const errorTextClass = c("setting-item-error-text")
+		const errorTextClass = c("item-error-text")
 		for (const e of this.containerEl.querySelectorAll(`.${errorTextClass}`)) {
 			e.remove()
 		}
-		const errorUnitClass = c("settings-unit-error")
+		const errorUnitClass = c("synthe-unit-error")
 		for (const e of this.containerEl.querySelectorAll(`.${errorUnitClass}`)) {
 			e.removeClass(errorUnitClass)
 		}
@@ -310,7 +313,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 				if (value === undefined) continue
 				if (nameDups.has(value)) {
 					const errorDiv = s.createEl("div")
-					errorDiv.addClass(errorTextClass)
+					errorDiv.addClass(errorTextClass, c("danger"))
 					errorDiv.setText("Name must be unique.")
 					if (first) {
 						first = false
