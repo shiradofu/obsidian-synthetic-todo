@@ -23,6 +23,7 @@ type States = {
 }
 
 export class SyntheticTodoView extends ItemView {
+	public icon = "checkbox-glyph"
 	public query = ""
 	private sort: SortOrder = "alphabetical"
 	private pinned: string[] = []
