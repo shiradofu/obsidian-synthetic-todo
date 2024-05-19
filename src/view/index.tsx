@@ -10,7 +10,7 @@ import type { ItemFarmEntity } from "../model"
 import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
-import { UI } from "./UI"
+import { Selector } from "./Selector"
 
 const t = "synthetic-todo-view" as const
 
@@ -85,7 +85,7 @@ export class SyntheticTodoView extends ItemView {
 
 		const reactEl = container.createEl("div")
 		this.reactRoot = createRoot(reactEl)
-		this.reactRoot.render(<UI registerListener={this.registerListener} />)
+		this.reactRoot.render(<Selector registerListener={this.registerListener} />)
 
 		const searchEl = container.createEl("div")
 		searchEl.style.display = "none"

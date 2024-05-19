@@ -11,7 +11,7 @@ type Props = {
 	registerListener: (callback: (itemFarms: ItemFarmEntity[]) => void) => void
 }
 
-export const UI = ({ registerListener }: Props) => {
+export const Selector = ({ registerListener }: Props) => {
 	const [farms, setFarms] = useState<ItemFarmEntity[]>([])
 	useEffect(() => {
 		return registerListener((farms) => setFarms(farms))
