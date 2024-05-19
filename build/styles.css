@@ -29,6 +29,12 @@
 		gap: 1rem;
 	}
 
+	.synthetic-todo-selector__right {
+		align-self: flex-start;
+		position: sticky;
+		top: 0;
+	}
+
 	.synthetic-todo-selector-Card {
 		--padding-size: 0.7rem;
 

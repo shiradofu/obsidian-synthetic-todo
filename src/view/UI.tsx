@@ -30,7 +30,7 @@ export const UI = ({ registerListener }: Props) => {
 						}
 					})}
 				</div>
-				<div>
+				<div className={c("right")}>
 					<Card title="Selected">{null}</Card>
 				</div>
 			</main>
