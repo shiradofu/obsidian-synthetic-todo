@@ -5,13 +5,12 @@ import {
 	type Workspace,
 	type WorkspaceLeaf,
 } from "obsidian"
-import { StrictMode } from "react"
 import { type Root, createRoot } from "react-dom/client"
-import { UI } from "./UI"
 import type { ItemFarm } from "../model"
 import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
+import { UI } from "./UI"
 
 const t = "synthetic-todo-view" as const
 
@@ -83,15 +82,10 @@ export class SyntheticTodoView extends ItemView {
 		const container = this.containerEl.children[1]
 		if (container === undefined) return
 		container.empty()
-		container.createEl("h1", { text: `query: ${this.query}` })
 
 		const reactEl = container.createEl("div")
 		this.reactRoot = createRoot(reactEl)
-		this.reactRoot.render(
-			<StrictMode>
-				<UI registerListener={this.registerListener} />
-			</StrictMode>,
-		)
+		this.reactRoot.render(<UI registerListener={this.registerListener} />)
 
 		const searchEl = container.createEl("div")
 		searchEl.style.display = "none"

@@ -176,7 +176,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 
 		new Setting(unitContainer)
 			.setName("Sort")
-			.setDesc("order of files in selection UI")
+			.setDesc("order of files in selector UI")
 			.addDropdown((d) =>
 				d
 					.addOptions(sortOrderOptions)
@@ -206,7 +206,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 
 		new Setting(unitContainer)
 			.setName("Checkbox status")
-			.setDesc("shown in selection UI")
+			.setDesc("shown in selector UI")
 			.addTextArea((t) =>
 				t
 					.setValue(data.checkboxStatus)

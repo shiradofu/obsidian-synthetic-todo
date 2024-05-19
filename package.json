@@ -27,6 +27,8 @@
 		"builtin-modules": "^3.3.0",
 		"esbuild": "0.20.2",
 		"obsidian": "^1.5.7-1",
+		"stylelint": "^16.5.0",
+		"stylelint-config-standard": "^36.0.0",
 		"tsx": "^4.7.2",
 		"typescript": "^5.4.5",
 		"vitest": "^1.6.0"

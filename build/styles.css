@@ -1,3 +1,138 @@
+/*
+ *
+ * Selector
+ *
+ */
+#synthetic-todo-selector {
+	--font-size-h1: 1.3rem;
+	--card-radius: var(--radius-m);
+	--bg-focused: var(--color-base-10);
+
+	display: flex;
+	width: 100%;
+	gap: 1rem;
+
+	> div {
+		width: 50%;
+	}
+
+	/* prettier-ignore */
+	& p, h1, h2, ul, li {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.synthetic-todo-selector__left {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.synthetic-todo-selector-Card {
+		--padding-size: 0.7rem;
+
+		border: 1px solid;
+		border-color: var(--divider-color);
+		border-radius: var(--card-radius);
+		padding: var(--padding-size);
+		background-color: var(--background-secondary);
+
+		& h1.synthetic-todo-selector-Card__title {
+			font-size: var(--font-size-h1);
+		}
+
+		& hr.synthetic-todo-selector-Card__divider {
+			border-top: 1px solid var(--divider-color);
+			margin: var(--padding-size) 0;
+			margin-left: calc(var(--padding-size) * -1);
+			width: calc(100% + var(--padding-size) * 2);
+		}
+	}
+
+	& section.synthetic-todo-selector-CheckboxItemFarm__segments {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+
+		& h2.synthetic-todo-selector-CheckboxItemFarm__segment-title {
+			font-size: 1.2rem;
+		}
+
+		.synthetic-todo-selector-CheckboxItemFarm__items {
+			> ul:first-of-type {
+				margin-top: 1rem;
+			}
+
+			> ul:first-child {
+				margin: 0;
+			}
+
+			> ul > li {
+				padding-left: 2px;
+			}
+		}
+
+		& li.synthetic-todo-selector-CheckboxItem {
+			padding-left: 1.5rem;
+
+			&:not(:has(li:hover)):hover {
+				border-radius: var(--radius-s);
+				background-color: var(--bg-focused);
+			}
+
+			& p.synthetic-todo-selector-CheckboxItem__content {
+				padding: 0.4rem 0;
+
+				> input[type="checkbox"] {
+					vertical-align: text-bottom;
+					pointer-events: none;
+				}
+			}
+		}
+	}
+
+	.synthetic-todo-selector-FileNameItemFarm {
+		& h1.synthetic-todo-selector-FileNameItemFarm__title {
+			margin: 1rem 0;
+			font-size: var(--font-size-h1);
+		}
+
+		& ul.synthetic-todo-selector-FileNameItemFarm__items {
+			display: flex;
+			flex-direction: column;
+			gap: 0.7rem;
+
+			& li.synthetic-todo-selector-FileNameItem {
+				border: 1px solid;
+				border-color: var(--divider-color);
+				border-radius: var(--card-radius);
+				background-color: var(--background-secondary);
+				height: 4rem;
+				overflow: hidden;
+				display: flex;
+				align-items: center;
+				gap: 1rem;
+				font-size: 1.1rem;
+
+				&:hover {
+					background-color: var(--bg-focused);
+				}
+
+				& img {
+					width: 4rem;
+					border-radius: var(--card-radius) 0 0 var(--card-radius);
+				}
+			}
+		}
+	}
+}
+
+/*
+ *
+ * Settings
+ *
+ */
 #synthetic-todo-settings {
 	.synthetic-todo-settings-danger {
 		color: var(--color-red);
@@ -9,9 +144,10 @@
 		gap: 20px;
 
 		.synthetic-todo-settings-synthe-unit {
-			border: 1px solid var(--background-modifier-border);
+			background-color: var(--background-secondary);
+			border: 1px solid var(--divider-color);
 			border-radius: var(--modal-radius);
-			padding: 15px;
+			padding: 1rem;
 
 			.setting-item {
 				flex-wrap: wrap;
@@ -39,7 +175,7 @@
 	}
 
 	.synthetic-todo-settings-synthe-unit-error {
-		opacity: 50%;
+		opacity: 0.5;
 	}
 
 	.synthetic-todo-settings-item-error-text {
