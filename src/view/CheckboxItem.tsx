@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import type { CheckboxItemEntity } from "src/model"
 import { bem } from "./bem"
+import { removeDupMarker } from "./helper"
 
 const c = bem("CheckboxItem")
 
@@ -16,7 +17,7 @@ const CheckboxItem = ({ item, children }: Props) => {
 		<li data-task={status} className={`${c()} ${isChecked}`}>
 			<p className={c("content")} data-task={status}>
 				<input type="checkbox" checked={!!isChecked} readOnly />
-				{item.text}
+				{removeDupMarker(item.text)}
 			</p>
 			{children}
 		</li>

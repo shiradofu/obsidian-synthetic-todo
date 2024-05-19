@@ -20,7 +20,9 @@ export class CheckboxItemParser {
 		const targets = this.extractTargetLines(file)
 		if (targets.length === 0) return false
 		const fileLines = (await this.readFile(file)).split("\n")
-		const idMap = new Map<number, CheckboxItemEntity>()
+		const lineNumToItemMap = new Map<number, CheckboxItemEntity>()
+		const [uniqueHeading] = this.createDupCounter()
+		const [uniqueTask, clearTaskDupChekcer] = this.createDupCounter()
 		let wipSegment = new CheckboxItemSegmentEntity()
 		const segments: CheckboxItemSegmentEntity[] = []
 
@@ -33,16 +35,22 @@ export class CheckboxItemParser {
 					const match = rawText.indexOf("]")
 					const text = match > -1 ? rawText.substring(match + 2) : ""
 					if (!text) continue
-					const item = new CheckboxItemEntity(text, t.task)
-					idMap.set(line, item)
-					t.parent < 0
+					const item = new CheckboxItemEntity(uniqueTask(text), t.task)
+					lineNumToItemMap.set(line, item)
+					const parentLineNum = t.parent
+					parentLineNum < 0
 						? wipSegment.items.push(item)
-						: idMap.get(t.parent)?.children.push(item)
+						: lineNumToItemMap.get(parentLineNum)?.children.push(item)
 					break
 				}
 				case "heading" in t: {
 					if (wipSegment.items.length > 0) segments.push(wipSegment)
-					wipSegment = new CheckboxItemSegmentEntity([], t.heading)
+					clearTaskDupChekcer()
+
+					wipSegment = new CheckboxItemSegmentEntity(
+						[],
+						uniqueHeading(t.heading),
+					)
 				}
 			}
 		}
@@ -82,5 +90,18 @@ export class CheckboxItemParser {
 		return [...tasks, ...headings].sort(
 			(a, b) => a.position.start.line - b.position.start.line,
 		)
+	}
+
+	private createDupCounter() {
+		const counterMap = new Map<string, number>()
+		function addSuffixIfDup(name: string) {
+			const count = counterMap.get(name) ?? ""
+			count === "" ? counterMap.set(name, 1) : counterMap.set(name, count + 1)
+			return `${name}${count && `![[[${count}]]]!`}`
+		}
+		function clearMap() {
+			counterMap.clear()
+		}
+		return [addSuffixIfDup, clearMap] as const
 	}
 }
