@@ -30,7 +30,10 @@ export class CheckboxItemFarmEntity implements Farm<CheckboxItemEntity> {
  * FileNameItem
  */
 export class FileNameItemEntity {
-	constructor(public path: string) {}
+	constructor(
+		public path: string,
+		public img?: string,
+	) {}
 }
 export class FileNameItemSegmentEntity implements Segment<FileNameItemEntity> {
 	constructor(public items: FileNameItemEntity[] = []) {}

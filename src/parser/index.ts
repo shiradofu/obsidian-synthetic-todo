@@ -13,6 +13,12 @@ export class Parser {
 	) {
 		this.fileNameItemParser = new FileNameItemParser(
 			this.app.metadataCache.getFileCache.bind(this.app.metadataCache),
+			(name?: string) => {
+				if (!name) return
+				const f = this.app.metadataCache.getFirstLinkpathDest(name, ".")
+				if (!f) return
+				return this.app.vault.getResourcePath(f)
+			},
 			tagsAndFoldersForFileNameItems,
 		)
 		this.checkboxItemParser = new CheckboxItemParser(

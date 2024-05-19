@@ -125,9 +125,13 @@
 					background-color: var(--bg-focused);
 				}
 
-				& img {
+				& img,
+				.synthetic-todo-selector-FileNameItem__no-image {
+					min-height: 4rem;
 					width: 4rem;
+					border-right: 1px solid var(--divider-color);
 					border-radius: var(--card-radius) 0 0 var(--card-radius);
+					background-color: var(--background-secondary);
 				}
 			}
 		}

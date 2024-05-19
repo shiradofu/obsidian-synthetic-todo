@@ -9,7 +9,11 @@ type Props = {
 
 export const FileNameItem = ({ item }: Props) => (
 	<li className={c()}>
-		<img src="https://picsum.photos/seed/picsum/100/100" alt={item.path} />
+		{item.img ? (
+			<img src={item.img} alt={item.path} />
+		) : (
+			<div className={c("no-image")} />
+		)}
 		{item.path}
 	</li>
 )
