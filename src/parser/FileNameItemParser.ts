@@ -41,11 +41,14 @@ export class FileNameItemParser {
 	}
 
 	private add(tagOrFolder: string, markdownFilePath: string) {
+		const newItem = tagOrFolder.endsWith("/")
+			? markdownFilePath.substring(tagOrFolder.length)
+			: markdownFilePath
 		const items = this.resultMap.get(tagOrFolder)
 		if (!items) {
-			this.resultMap.set(tagOrFolder, [markdownFilePath])
+			this.resultMap.set(tagOrFolder, [newItem])
 		} else {
-			items.push(markdownFilePath)
+			items.push(newItem)
 		}
 	}
 
