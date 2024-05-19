@@ -1,5 +1,5 @@
 import type { TFile } from "obsidian"
-import { FileNameItem, FileNameItemFarm } from "src/model"
+import { FileNameItemEntity, FileNameItemFarmEntity } from "src/model"
 
 type TagOrFolder = string
 type MarkdownFilePath = string
@@ -53,8 +53,8 @@ export class FileNameItemParser {
 		const sortedResult = this.order.flatMap((tagOrFolder) => {
 			const items = this.resultMap.get(tagOrFolder)
 			if (items === undefined) return []
-			return new FileNameItemFarm(tagOrFolder, [
-				{ items: items.map((i) => new FileNameItem(i)) },
+			return new FileNameItemFarmEntity(tagOrFolder, [
+				{ items: items.map((i) => new FileNameItemEntity(i)) },
 			])
 		})
 		this.resultMap = new Map()

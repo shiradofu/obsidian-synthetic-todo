@@ -1,4 +1,4 @@
-import type { CheckboxItemFarm as CheckboxItemFarmEntity } from "src/model"
+import type { CheckboxItemFarmEntity } from "src/model"
 import { Card } from "./Card"
 import { renderItemRecursive } from "./CheckboxItem"
 import { bem } from "./bem"

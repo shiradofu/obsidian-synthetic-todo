@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import type { CheckboxItem as CheckboxItemEntity } from "src/model"
+import type { CheckboxItemEntity } from "src/model"
 import { bem } from "./bem"
 
 const c = bem("CheckboxItem")

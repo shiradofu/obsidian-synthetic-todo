@@ -1,10 +1,14 @@
 import type { CachedMetadata, ListItemCache, TFile } from "obsidian"
-import { CheckboxItem, CheckboxItemFarm, CheckboxItemSegment } from "src/model"
+import {
+	CheckboxItemEntity,
+	CheckboxItemFarmEntity,
+	CheckboxItemSegmentEntity,
+} from "src/model"
 
 type PartiallyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 
 export class CheckboxItemParser {
-	private results: CheckboxItemFarm[] = []
+	private results: CheckboxItemFarmEntity[] = []
 
 	constructor(
 		private getFileCache: (file: TFile) => CachedMetadata | null,
@@ -16,9 +20,9 @@ export class CheckboxItemParser {
 		const targets = this.extractTargetLines(file)
 		if (targets.length === 0) return false
 		const fileLines = (await this.readFile(file)).split("\n")
-		const idMap = new Map<number, CheckboxItem>()
-		let wipSegment = new CheckboxItemSegment()
-		const segments: CheckboxItemSegment[] = []
+		const idMap = new Map<number, CheckboxItemEntity>()
+		let wipSegment = new CheckboxItemSegmentEntity()
+		const segments: CheckboxItemSegmentEntity[] = []
 
 		for (const t of targets) {
 			switch (true) {
@@ -29,7 +33,7 @@ export class CheckboxItemParser {
 					const match = rawText.indexOf("]")
 					const text = match > -1 ? rawText.substring(match + 2) : ""
 					if (!text) continue
-					const item = new CheckboxItem(text, t.task)
+					const item = new CheckboxItemEntity(text, t.task)
 					idMap.set(line, item)
 					t.parent < 0
 						? wipSegment.items.push(item)
@@ -38,14 +42,14 @@ export class CheckboxItemParser {
 				}
 				case "heading" in t: {
 					if (wipSegment.items.length > 0) segments.push(wipSegment)
-					wipSegment = new CheckboxItemSegment([], t.heading)
+					wipSegment = new CheckboxItemSegmentEntity([], t.heading)
 				}
 			}
 		}
 		if (wipSegment.items.length > 0) {
 			segments.push(wipSegment)
 		}
-		this.results.push(new CheckboxItemFarm(file.path, segments))
+		this.results.push(new CheckboxItemFarmEntity(file.path, segments))
 		return true
 	}
 

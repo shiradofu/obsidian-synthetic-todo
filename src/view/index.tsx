@@ -6,7 +6,7 @@ import {
 	type WorkspaceLeaf,
 } from "obsidian"
 import { type Root, createRoot } from "react-dom/client"
-import type { ItemFarm } from "../model"
+import type { ItemFarmEntity } from "../model"
 import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
@@ -28,7 +28,7 @@ export class SyntheticTodoView extends ItemView {
 	private pinned: string[] = []
 	private tagsAndFoldersForFileNameItems: string[] = []
 	private parser?: Parser
-	private listeners: ((itemFarms: ItemFarm[]) => void)[] = []
+	private listeners: ((itemFarms: ItemFarmEntity[]) => void)[] = []
 	private reactRoot: Root | null = null
 
 	public static register() {
@@ -105,7 +105,9 @@ export class SyntheticTodoView extends ItemView {
 		this.parse(files)
 	}
 
-	private registerListener = (callback: (itemFarms: ItemFarm[]) => void) => {
+	private registerListener = (
+		callback: (itemFarms: ItemFarmEntity[]) => void,
+	) => {
 		this.listeners.push(callback)
 		return () => this.listeners.filter((l) => l !== callback)
 	}

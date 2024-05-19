@@ -1,6 +1,6 @@
-import type { FileNameItemFarm as FileNameItemFarmEntity } from "src/model"
-import { bem } from "./bem"
+import type { FileNameItemFarmEntity } from "src/model"
 import { FileNameItem } from "./FileNameItem"
+import { bem } from "./bem"
 
 const c = bem("FileNameItemFarm")
 

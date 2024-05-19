@@ -1,4 +1,4 @@
-import type { FileNameItem as FileNameItemEntity } from "src/model"
+import type { FileNameItemEntity } from "src/model"
 import { bem } from "./bem"
 
 const c = bem("FileNameItem")
