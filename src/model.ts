@@ -1,49 +1,42 @@
-type ItemType = "checkbox" | "fileName"
-type Segment<T> = { items: T[] }
-type Farm<T> = { segments: Segment<T>[]; itemType: ItemType }
-
 /**
- * CheckboxItem
+ * CheckboxTodo
  */
-export class CheckboxItemEntity {
+export class CheckboxTodo {
 	constructor(
 		public text: string,
 		public status = " ",
-		public children: CheckboxItemEntity[] = [],
+		public children: CheckboxTodo[] = [],
 	) {}
 }
-export class CheckboxItemSegmentEntity implements Segment<CheckboxItemEntity> {
+export class CheckboxTodoFarmParcel {
 	constructor(
-		public items: CheckboxItemEntity[] = [],
-		public heading?: string,
+		public todos: CheckboxTodo[],
+		public name: string,
 	) {}
 }
-export class CheckboxItemFarmEntity implements Farm<CheckboxItemEntity> {
-	public itemType = "checkbox" as const
+export class CheckboxTodoFarm {
+	public todoType = "checkbox" as const
 	constructor(
 		public path: string,
-		public segments: CheckboxItemSegmentEntity[],
+		public parcels: CheckboxTodoFarmParcel[],
 	) {}
 }
 
 /**
- * FileNameItem
+ * FileNameTodo
  */
-export class FileNameItemEntity {
+export class FileNameTodo {
 	constructor(
 		public path: string,
 		public img?: string,
 	) {}
 }
-export class FileNameItemSegmentEntity implements Segment<FileNameItemEntity> {
-	constructor(public items: FileNameItemEntity[] = []) {}
-}
-export class FileNameItemFarmEntity implements Farm<FileNameItemEntity> {
-	public itemType = "fileName" as const
+export class FileNameTodoFarm {
+	public todoType = "fileName" as const
 	constructor(
 		public tagOrFolder: string,
-		public segments: FileNameItemSegmentEntity[],
+		public todos: FileNameTodo[],
 	) {}
 }
 
-export type ItemFarmEntity = CheckboxItemFarmEntity | FileNameItemFarmEntity
+export type TodoFarm = CheckboxTodoFarm | FileNameTodoFarm

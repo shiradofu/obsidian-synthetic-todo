@@ -6,7 +6,7 @@
 #synthetic-todo-selector {
 	--font-size-h1: 1.3rem;
 	--card-radius: var(--radius-m);
-	--bg-focused: var(--color-base-10);
+	--bg-focused: var(--background-modifier-hover);
 
 	display: flex;
 	width: 100%;
@@ -56,60 +56,66 @@
 		}
 	}
 
-	& section.synthetic-todo-selector-CheckboxItemFarm__segments {
+	& li.synthetic-todo-selector-CheckboxTodoItem {
+		padding-left: 1.5rem;
+
+		:not(li) > ul > & {
+			padding-left: 2px;
+		}
+
+		&:not(:has(li:hover)):hover {
+			border-radius: var(--radius-s);
+			background-color: var(--bg-focused);
+		}
+
+		& p.synthetic-todo-selector-CheckboxTodoItem__content {
+			padding: 0.4rem 0;
+
+			> input[type="checkbox"] {
+				vertical-align: text-bottom;
+				pointer-events: none;
+			}
+		}
+	}
+
+	& section.synthetic-todo-selector-CheckboxTodoSelector__parcels {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
 
-		& h2.synthetic-todo-selector-CheckboxItemFarm__segment-title {
+		& h2.synthetic-todo-selector-CheckboxTodoSelector__parcel-name {
 			font-size: 1.2rem;
 		}
 
-		.synthetic-todo-selector-CheckboxItemFarm__items {
-			> ul:first-of-type {
-				margin-top: 1rem;
-			}
-
-			> ul:first-child {
+		.synthetic-todo-selector-CheckboxTodoSelector__parcel {
+			> div:first-child {
 				margin: 0;
 			}
 
-			> ul > li {
-				padding-left: 2px;
+			> h2.synthetic-todo-selector-CheckboxTodoSelector__parcel-name
+				+ div:first-of-type {
+				margin-top: 1rem;
 			}
-		}
-
-		& li.synthetic-todo-selector-CheckboxItem {
-			padding-left: 1.5rem;
 
 			&:not(:has(li:hover)):hover {
 				border-radius: var(--radius-s);
 				background-color: var(--bg-focused);
 			}
-
-			& p.synthetic-todo-selector-CheckboxItem__content {
-				padding: 0.4rem 0;
-
-				> input[type="checkbox"] {
-					vertical-align: text-bottom;
-					pointer-events: none;
-				}
-			}
 		}
 	}
 
-	.synthetic-todo-selector-FileNameItemFarm {
-		& h1.synthetic-todo-selector-FileNameItemFarm__title {
+	.synthetic-todo-selector-FileNameTodoSelector {
+		& h1.synthetic-todo-selector-FileNameTodoSelector__tag-or-folder {
 			margin: 1rem 0;
 			font-size: var(--font-size-h1);
 		}
 
-		& ul.synthetic-todo-selector-FileNameItemFarm__items {
+		& ul.synthetic-todo-selector-FileNameTodoSelector__items {
 			display: flex;
 			flex-direction: column;
 			gap: 0.7rem;
 
-			& li.synthetic-todo-selector-FileNameItem {
+			& li.synthetic-todo-selector-FileNameTodoSelector__item {
 				border: 1px solid;
 				border-color: var(--divider-color);
 				border-radius: var(--card-radius);
@@ -126,11 +132,18 @@
 				}
 
 				& img,
-				.synthetic-todo-selector-FileNameItem__no-image {
+				.synthetic-todo-selector-FileNameTodoSelector__item-noimg {
 					min-height: 4rem;
 					width: 4rem;
-					border-right: 1px solid var(--divider-color);
 					border-radius: var(--card-radius) 0 0 var(--card-radius);
+				}
+
+				& img {
+					box-shadow: none;
+				}
+
+				.synthetic-todo-selector-FileNameTodoSelector__item-noimg {
+					border-right: 1px solid var(--divider-color);
 					background-color: var(--background-secondary);
 				}
 			}

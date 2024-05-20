@@ -28,7 +28,7 @@ type SyntheSettingsUnit = {
 	query: string
 	sort: SortOrder
 	pinned: string
-	tagsAndFoldersForFileNameItems: string
+	tagsAndFoldersForFileNameTodos: string
 	checkboxStatus: string
 	groupByFileName: GroupByFileName
 }
@@ -44,7 +44,7 @@ const emptySyntheSettingsUnit: SyntheSettingsUnit = {
 	query: "",
 	sort: "alphabetical",
 	pinned: "",
-	tagsAndFoldersForFileNameItems: "",
+	tagsAndFoldersForFileNameTodos: "",
 	checkboxStatus: "",
 	groupByFileName: "treeParent",
 }
@@ -90,8 +90,8 @@ export class SyntheticTodoSettings {
 							.split("\n")
 							.map((p) => p.trim())
 							.filter((p) => p)
-						const tagsAndFoldersForFileNameItems =
-							s.tagsAndFoldersForFileNameItems
+						const tagsAndFoldersForFileNameTodos =
+							s.tagsAndFoldersForFileNameTodos
 								.trim()
 								.split(":")
 								.map((i) => i.trim())
@@ -101,7 +101,7 @@ export class SyntheticTodoSettings {
 							query,
 							sort,
 							pinned,
-							tagsAndFoldersForFileNameItems,
+							tagsAndFoldersForFileNameTodos: tagsAndFoldersForFileNameTodos,
 						})
 					},
 				})
@@ -195,13 +195,13 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			)
 
 		new Setting(unitContainer)
-			.setName("Filename Items")
+			.setName("Filename Todos")
 			.setDesc("show filename intead of checkboxes")
 			.addTextArea((t) =>
 				t
-					.setValue(data.tagsAndFoldersForFileNameItems)
+					.setValue(data.tagsAndFoldersForFileNameTodos)
 					.setPlaceholder("colon-separated list\n#tag:direcotry/:#anotherTag")
-					.onChange(onChange("tagsAndFoldersForFileNameItems")),
+					.onChange(onChange("tagsAndFoldersForFileNameTodos")),
 			)
 
 		new Setting(unitContainer)

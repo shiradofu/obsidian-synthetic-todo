@@ -1,18 +1,18 @@
 import { StrictMode, useEffect, useState } from "react"
-import type { ItemFarmEntity } from "../model"
+import type { TodoFarm } from "../model"
 import { Card } from "./Card"
-import { CheckboxItemFarm } from "./CheckboxItemFarm"
-import { FileNameItemFarm } from "./FileNameItemFarm"
+import { CheckboxTodoSelector } from "./CheckboxTodoSelector"
+import { FileNameTodoSelector } from "./FileNameTodoSelector"
 import { bem } from "./bem"
 
 const c = bem()
 
 type Props = {
-	registerListener: (callback: (itemFarms: ItemFarmEntity[]) => void) => void
+	registerListener: (callback: (todoFarms: TodoFarm[]) => void) => void
 }
 
 export const Selector = ({ registerListener }: Props) => {
-	const [farms, setFarms] = useState<ItemFarmEntity[]>([])
+	const [farms, setFarms] = useState<TodoFarm[]>([])
 	useEffect(() => {
 		return registerListener((farms) => setFarms(farms))
 	}, [registerListener])
@@ -22,11 +22,11 @@ export const Selector = ({ registerListener }: Props) => {
 			<main id={c()}>
 				<div className={c("left")}>
 					{farms.map((f) => {
-						switch (f.itemType) {
+						switch (f.todoType) {
 							case "checkbox":
-								return <CheckboxItemFarm key={f.path} farm={f} />
+								return <CheckboxTodoSelector farm={f} key={f.path} />
 							case "fileName":
-								return <FileNameItemFarm key={f.tagOrFolder} farm={f} />
+								return <FileNameTodoSelector farm={f} key={f.tagOrFolder} />
 						}
 					})}
 				</div>

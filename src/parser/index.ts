@@ -1,17 +1,17 @@
 import type { App, TFile } from "obsidian"
-import { CheckboxItemParser } from "./CheckboxItemParser"
-import { FileNameItemParser } from "./FileNameItemParser"
+import { CheckboxTodoParser } from "./CheckboxTodoParser"
+import { FileNameTodoParser } from "./FileNameTodoParser"
 
 export class Parser {
-	private checkboxItemParser: CheckboxItemParser
-	private fileNameItemParser: FileNameItemParser
+	private fileNameTodoParser: FileNameTodoParser
+	private checkboxTodoParser: CheckboxTodoParser
 
 	constructor(
 		private app: App,
 		pinned: string[],
-		tagsAndFoldersForFileNameItems: string[],
+		tagsAndFoldersForFileNameTodos: string[],
 	) {
-		this.fileNameItemParser = new FileNameItemParser(
+		this.fileNameTodoParser = new FileNameTodoParser(
 			this.app.metadataCache.getFileCache.bind(this.app.metadataCache),
 			(name?: string) => {
 				if (!name) return
@@ -19,9 +19,9 @@ export class Parser {
 				if (!f) return
 				return this.app.vault.getResourcePath(f)
 			},
-			tagsAndFoldersForFileNameItems,
+			tagsAndFoldersForFileNameTodos,
 		)
-		this.checkboxItemParser = new CheckboxItemParser(
+		this.checkboxTodoParser = new CheckboxTodoParser(
 			this.app.metadataCache.getFileCache.bind(this.app.metadataCache),
 			this.app.vault.cachedRead.bind(this.app.vault),
 			pinned,
@@ -31,14 +31,14 @@ export class Parser {
 	public async parse(files: TFile[]) {
 		await Promise.all(
 			files.map(async (f) => {
-				if (this.fileNameItemParser.storeIfMatch(f)) return
-				this.checkboxItemParser.parseIfTaskContained(f)
+				if (this.fileNameTodoParser.storeIfMatch(f)) return
+				this.checkboxTodoParser.parseIfTaskContained(f)
 			}),
 		)
 
 		return [
-			...this.checkboxItemParser.finish(),
-			...this.fileNameItemParser.finish(),
+			...this.checkboxTodoParser.finish(),
+			...this.fileNameTodoParser.finish(),
 		]
 	}
 }

@@ -1,10 +1,10 @@
 import type { TFile } from "obsidian"
 import { imgExts } from "src/constants"
-import { FileNameItemEntity, FileNameItemFarmEntity } from "src/model"
+import { FileNameTodo, FileNameTodoFarm } from "src/model"
 
 type TagOrFolder = string
 
-export class FileNameItemParser {
+export class FileNameTodoParser {
 	private resultMap = new Map<TagOrFolder, { path: string; img?: string }[]>()
 	private tags: string[]
 	private folders: string[]
@@ -50,31 +50,29 @@ export class FileNameItemParser {
 	}
 
 	private add(tagOrFolder: string, markdownFilePath: string, imgPath?: string) {
-		const newItem = {
-			path: tagOrFolder.endsWith("/")
+		const newTodo = {
+			path: (tagOrFolder.endsWith("/")
 				? markdownFilePath.substring(tagOrFolder.length)
-				: markdownFilePath,
+				: markdownFilePath
+			).slice(0, -3), // remove .md
 			img: imgPath,
 		}
-		const items = this.resultMap.get(tagOrFolder)
-		if (!items) {
-			this.resultMap.set(tagOrFolder, [newItem])
+		const todos = this.resultMap.get(tagOrFolder)
+		if (!todos) {
+			this.resultMap.set(tagOrFolder, [newTodo])
 		} else {
-			items.push(newItem)
+			todos.push(newTodo)
 		}
 	}
 
 	public finish() {
 		const sortedResult = this.order.flatMap((tagOrFolder) => {
-			const items = this.resultMap.get(tagOrFolder)
-			if (items === undefined) return []
-			return new FileNameItemFarmEntity(tagOrFolder, [
-				{
-					items: items.map(
-						({ path, img }) => new FileNameItemEntity(path, img),
-					),
-				},
-			])
+			const todos = this.resultMap.get(tagOrFolder)
+			if (todos === undefined) return []
+			return new FileNameTodoFarm(
+				tagOrFolder,
+				todos.map(({ path, img }) => new FileNameTodo(path, img)),
+			)
 		})
 		this.resultMap = new Map()
 		return sortedResult

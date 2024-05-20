@@ -6,7 +6,7 @@ import {
 	type WorkspaceLeaf,
 } from "obsidian"
 import { type Root, createRoot } from "react-dom/client"
-import type { ItemFarmEntity } from "../model"
+import type { TodoFarm } from "../model"
 import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
@@ -18,7 +18,7 @@ type States = {
 	query: string
 	sort: SortOrder
 	pinned: string[]
-	tagsAndFoldersForFileNameItems: string[]
+	tagsAndFoldersForFileNameTodos: string[]
 }
 
 export class SyntheticTodoView extends ItemView {
@@ -26,9 +26,9 @@ export class SyntheticTodoView extends ItemView {
 	public query = ""
 	private sort: SortOrder = "alphabetical"
 	private pinned: string[] = []
-	private tagsAndFoldersForFileNameItems: string[] = []
+	private tagsAndFoldersForFileNameTodos: string[] = []
 	private parser?: Parser
-	private listeners: ((itemFarms: ItemFarmEntity[]) => void)[] = []
+	private listeners: ((todoFarms: TodoFarm[]) => void)[] = []
 	private reactRoot: Root | null = null
 
 	public static register() {
@@ -55,11 +55,11 @@ export class SyntheticTodoView extends ItemView {
 		this.query = state.query
 		this.sort = state.sort
 		this.pinned = state.pinned
-		this.tagsAndFoldersForFileNameItems = state.tagsAndFoldersForFileNameItems
+		this.tagsAndFoldersForFileNameTodos = state.tagsAndFoldersForFileNameTodos
 		this.parser = new Parser(
 			this.app,
 			this.pinned,
-			this.tagsAndFoldersForFileNameItems,
+			this.tagsAndFoldersForFileNameTodos,
 		)
 		await this.initUI()
 		return super.setState(state, result)
@@ -70,7 +70,7 @@ export class SyntheticTodoView extends ItemView {
 			query: this.query,
 			sort: this.sort,
 			pinned: this.pinned,
-			tagsAndFoldersForFileNameItems: this.tagsAndFoldersForFileNameItems,
+			tagsAndFoldersForFileNameTodos: this.tagsAndFoldersForFileNameTodos,
 		}
 	}
 
@@ -105,18 +105,16 @@ export class SyntheticTodoView extends ItemView {
 		this.parse(files)
 	}
 
-	private registerListener = (
-		callback: (itemFarms: ItemFarmEntity[]) => void,
-	) => {
+	private registerListener = (callback: (todoFarms: TodoFarm[]) => void) => {
 		this.listeners.push(callback)
 		return () => this.listeners.filter((l) => l !== callback)
 	}
 
 	private async parse(files: TFile[]) {
 		if (!this.parser) throw new Error("parser is not set")
-		const itemFarms = await this.parser.parse(files)
+		const todoFarms = await this.parser.parse(files)
 		for (const listener of this.listeners) {
-			listener(itemFarms)
+			listener(todoFarms)
 		}
 	}
 }
