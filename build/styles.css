@@ -107,10 +107,11 @@
 
 		& h2.synthetic-todo-selector-CheckboxTodoSelector__parcel-name {
 			font-size: 1.2rem;
-			cursor: pointer;
 		}
 
 		.synthetic-todo-selector-CheckboxTodoSelector__parcel {
+			cursor: pointer;
+
 			> div:first-child {
 				margin: 0;
 			}

@@ -30,21 +30,22 @@ export const CheckboxTodoSelector = ({
 		>
 			<section className={c("parcels")}>
 				{farm.parcels.map((parcel) => (
-					<div key={parcel.name} className={c("parcel")}>
+					<div
+						key={parcel.name}
+						className={c("parcel")}
+						onClick={createSelectorHandler(
+							[farm.path, parcel.name],
+							parcel.todos,
+							true,
+						)}
+						onKeyDown={createSelectorHandler(
+							[farm.path, parcel.name],
+							parcel.todos,
+							true,
+						)}
+					>
 						{parcel.name !== "" && (
-							<h2
-								className={c("parcel-name")}
-								onClick={createSelectorHandler(
-									[farm.path, parcel.name],
-									parcel.todos,
-									true,
-								)}
-								onKeyDown={createSelectorHandler(
-									[farm.path, parcel.name],
-									parcel.todos,
-									true,
-								)}
-							>
+							<h2 className={c("parcel-name")}>
 								{removeDupMarker(parcel.name)}
 							</h2>
 						)}
