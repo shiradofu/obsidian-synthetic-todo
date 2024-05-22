@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { bem } from "./bem"
 
 type Props = {
-	title: string
+	title: string | ReactNode
 	children: ReactNode
 }
 

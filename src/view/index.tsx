@@ -11,14 +11,19 @@ import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
 import { Selector } from "./Selector"
+import type { SelectedIdMap, SelectedType } from "./hooks"
 
 const t = "synthetic-todo-view" as const
 
-type States = {
+type InitialState = {
 	query: string
 	sort: SortOrder
 	pinned: string[]
 	tagsAndFoldersForFileNameTodos: string[]
+}
+
+type State = InitialState & {
+	selectedIdMap: Record<string, SelectedType>
 }
 
 export class SyntheticTodoView extends ItemView {
@@ -28,14 +33,15 @@ export class SyntheticTodoView extends ItemView {
 	private pinned: string[] = []
 	private tagsAndFoldersForFileNameTodos: string[] = []
 	private parser?: Parser
-	private listeners: ((todoFarms: TodoFarm[]) => void)[] = []
+	private farmListeners: ((todoFarms: TodoFarm[]) => void)[] = []
 	private reactRoot: Root | null = null
+	private selectedIdMap: SelectedIdMap = new Map()
 
 	public static register() {
 		return [t, (leaf: WorkspaceLeaf) => new SyntheticTodoView(leaf)] as const
 	}
 
-	public static async open(workspace: Workspace, state: States) {
+	public static async open(workspace: Workspace, state: InitialState) {
 		const leaves = workspace.getLeavesOfType(t)
 		if (leaves[0]) return workspace.revealLeaf(leaves[0])
 		const leaf = workspace.getLeaf("tab")
@@ -51,7 +57,7 @@ export class SyntheticTodoView extends ItemView {
 		return "Synthetic Todo"
 	}
 
-	public async setState(state: States, result: ViewStateResult) {
+	public async setState(state: InitialState | State, result: ViewStateResult) {
 		this.query = state.query
 		this.sort = state.sort
 		this.pinned = state.pinned
@@ -61,16 +67,20 @@ export class SyntheticTodoView extends ItemView {
 			this.pinned,
 			this.tagsAndFoldersForFileNameTodos,
 		)
+		if ("selectedIdMap" in state) {
+			this.selectedIdMap = new Map(Object.entries(state.selectedIdMap || {}))
+		}
 		await this.initUI()
 		return super.setState(state, result)
 	}
 
-	public getState(): States {
+	public getState(): State {
 		return {
 			query: this.query,
 			sort: this.sort,
 			pinned: this.pinned,
 			tagsAndFoldersForFileNameTodos: this.tagsAndFoldersForFileNameTodos,
+			selectedIdMap: Object.fromEntries(this.selectedIdMap),
 		}
 	}
 
@@ -85,7 +95,13 @@ export class SyntheticTodoView extends ItemView {
 
 		const reactEl = container.createEl("div")
 		this.reactRoot = createRoot(reactEl)
-		this.reactRoot.render(<Selector registerListener={this.registerListener} />)
+		this.reactRoot.render(
+			<Selector
+				registerFarmListener={this.registerFarmListener}
+				setSelectedIdMapToViewState={this.setSelectedIdMapToViewState}
+				selectedIdMapHydration={this.selectedIdMap}
+			/>,
+		)
 
 		const searchEl = container.createEl("div")
 		searchEl.style.display = "none"
@@ -105,15 +121,21 @@ export class SyntheticTodoView extends ItemView {
 		this.parse(files)
 	}
 
-	private registerListener = (callback: (todoFarms: TodoFarm[]) => void) => {
-		this.listeners.push(callback)
-		return () => this.listeners.filter((l) => l !== callback)
+	private registerFarmListener = (
+		callback: (todoFarms: TodoFarm[]) => void,
+	) => {
+		this.farmListeners.push(callback)
+		return () => this.farmListeners.filter((l) => l !== callback)
+	}
+
+	private setSelectedIdMapToViewState = (selectedIdMap: SelectedIdMap) => {
+		this.selectedIdMap = selectedIdMap
 	}
 
 	private async parse(files: TFile[]) {
 		if (!this.parser) throw new Error("parser is not set")
 		const todoFarms = await this.parser.parse(files)
-		for (const listener of this.listeners) {
+		for (const listener of this.farmListeners) {
 			listener(todoFarms)
 		}
 	}
