@@ -39,6 +39,18 @@ export const useSelectedIdMap = (
 		setSelectedIdMapToViewState(newMap)
 	}
 
+	const getChildInfo = (
+		target: CheckboxTodo | CheckboxTodoFarmParcel,
+		ctx: string[],
+	) => {
+		const isCheckboxTodo = target instanceof CheckboxTodo
+		const text = isCheckboxTodo ? target.text : target.name
+		const children = isCheckboxTodo ? target.children : target.todos
+		const currentCtx = [...ctx, text]
+		const id = currentCtx.join("/")
+		return { isCheckboxTodo, currentCtx, id, children }
+	}
+
 	const addChildrenRecursive = (
 		map: SelectedIdMap,
 		children: CheckboxTodo[] | CheckboxTodoFarmParcel[],
@@ -46,11 +58,10 @@ export const useSelectedIdMap = (
 		selectedType: "copy",
 	) => {
 		for (const child of children) {
-			const isCheckboxTodo = child instanceof CheckboxTodo
-			const text = isCheckboxTodo ? child.text : child.name
-			const children = isCheckboxTodo ? child.children : child.todos
-			const currentCtx = [...ctx, text]
-			const id = currentCtx.join("/")
+			const { isCheckboxTodo, currentCtx, id, children } = getChildInfo(
+				child,
+				ctx,
+			)
 			map.set(id, isCheckboxTodo ? selectedType : "parent")
 			addChildrenRecursive(map, children, currentCtx, selectedType)
 		}
@@ -62,14 +73,23 @@ export const useSelectedIdMap = (
 		ctx: string[],
 	) => {
 		for (const child of children) {
-			const isCheckboxTodo = child instanceof CheckboxTodo
-			const text = isCheckboxTodo ? child.text : child.name
-			const children = isCheckboxTodo ? child.children : child.todos
-			const currentCtx = [...ctx, text]
-			const id = currentCtx.join("/")
+			const { currentCtx, id, children } = getChildInfo(child, ctx)
 			map.delete(id)
 			deleteChildrenRecursive(map, children, currentCtx)
 		}
+	}
+
+	const areAllChildrenSelected = (
+		map: SelectedIdMap,
+		children: CheckboxTodo[] | CheckboxTodoFarmParcel[],
+		ctx: string[],
+	): boolean => {
+		for (const child of children) {
+			const { currentCtx, id, children } = getChildInfo(child, ctx)
+			if (!map.has(id)) return false
+			if (!areAllChildrenSelected(map, children, currentCtx)) return false
+		}
+		return true
 	}
 
 	const addParentRecursive = (map: SelectedIdMap, ctx: string[]) => {
@@ -109,9 +129,13 @@ export const useSelectedIdMap = (
 				// biome-ignore lint: lint/suspicious/noFallthroughSwitchClause
 				case "parent":
 					if (isGroupName) {
-						map.delete(id)
-						deleteChildrenRecursive(map, children, currentCtx)
-						deleteParentRecursive(map, currentCtx)
+						if (areAllChildrenSelected(map, children, currentCtx)) {
+							map.delete(id)
+							deleteChildrenRecursive(map, children, currentCtx)
+							deleteParentRecursive(map, currentCtx)
+						} else {
+							addChildrenRecursive(map, children, currentCtx, selectedType)
+						}
 						break
 					}
 				// this fallthrough is intentional
