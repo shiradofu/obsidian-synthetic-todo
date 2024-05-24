@@ -12,11 +12,8 @@ export default class SyntheticTodo extends Plugin {
 
 		this.addRibbonIcon("checkbox-glyph", "Open View", async () => {
 			// for debugging
-			// biome-ignore lint: lint/suspicious/noExplicitAny
-			const { commands } = this.app.commands as any
-			const key = "synthetic-todo:test"
-			if (!commands[key]) return console.error("command not found")
-			commands[key].callback()
+			const cmd = this.app.commands.commands["synthetic-todo:test"]
+			cmd?.callback ? cmd.callback() : alert("cmd not found")
 		})
 	}
 

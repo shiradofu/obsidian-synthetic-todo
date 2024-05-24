@@ -121,7 +121,7 @@ export class SyntheticTodoSettings {
 class SyntheticTodoSettingTab extends PluginSettingTab {
 	constructor(
 		public app: App,
-		private plugin: SyntheticTodo,
+		public plugin: SyntheticTodo,
 		private settings: SyntheticTodoSettings,
 	) {
 		super(app, plugin)
