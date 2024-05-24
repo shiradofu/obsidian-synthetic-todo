@@ -9,7 +9,7 @@
 		"dev": "source .env && npm start -- $LINK_DIR",
 		"ex": "source .env.example && npm start -- $LINK_DIR",
 		"lint": "tsc; biome check .; biome format .",
-		"fix": "biome check --apply . && biome format --write .",
+		"fix": "biome check --apply .",
 		"fmt": "biome format --write .",
 		"test": "vitest",
 		"ver": "tsx scripts/versioning.ts",
