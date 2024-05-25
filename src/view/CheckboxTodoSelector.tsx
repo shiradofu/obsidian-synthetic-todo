@@ -1,5 +1,4 @@
-import { removeDupMarker } from "src/helper"
-import type { CheckboxTodoFarm } from "src/model"
+import { CheckboxTodoNode, type TodoNode } from "src/model"
 import { Card } from "./Card"
 import { renderCheckboxTodoItemTree } from "./CheckboxTodoItem"
 import { bem } from "./bem"
@@ -12,7 +11,7 @@ export const CheckboxTodoSelector = ({
 	selectedIdMap,
 	createSelectorHandler,
 }: {
-	farm: CheckboxTodoFarm
+	farm: TodoNode
 	selectedIdMap: SelectedIdMap
 	createSelectorHandler: SelectionHandlerCreator
 }) => {
@@ -21,38 +20,27 @@ export const CheckboxTodoSelector = ({
 			title={
 				<span
 					className={c("card-title")}
-					onClick={createSelectorHandler([farm.path], farm.parcels, true)}
-					onKeyDown={createSelectorHandler([farm.path], farm.parcels, true)}
+					onClick={createSelectorHandler(farm)}
+					onKeyDown={createSelectorHandler(farm)}
 				>
-					{farm.path}
+					{farm.value}
 				</span>
 			}
 		>
 			<section className={c("parcels")}>
-				{farm.parcels.map((parcel) => (
+				{farm.children.map((parcel) => (
 					<div
-						key={parcel.name}
+						key={parcel.id}
 						className={c("parcel")}
-						onClick={createSelectorHandler(
-							[farm.path, parcel.name],
-							parcel.todos,
-							true,
-						)}
-						onKeyDown={createSelectorHandler(
-							[farm.path, parcel.name],
-							parcel.todos,
-							true,
-						)}
+						onClick={createSelectorHandler(parcel)}
+						onKeyDown={createSelectorHandler(parcel)}
 					>
-						{parcel.name !== "" && (
-							<h2 className={c("parcel-name")}>
-								{removeDupMarker(parcel.name)}
-							</h2>
+						{parcel.value !== "" && (
+							<h2 className={c("parcel-name")}>{parcel.value}</h2>
 						)}
 						<div>
 							{renderCheckboxTodoItemTree(
-								parcel.todos,
-								[farm.path, parcel.name],
+								parcel.children.filter(CheckboxTodoNode.mustBeCheckboxTodoNode),
 								createSelectorHandler,
 								selectedIdMap,
 							)}

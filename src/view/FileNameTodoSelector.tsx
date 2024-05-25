@@ -1,4 +1,4 @@
-import type { FileNameTodoFarm } from "src/model"
+import { FilenameTodoNode, type TodoNode } from "src/model"
 import { bem } from "./bem"
 import type { SelectedIdMap, SelectionHandlerCreator } from "./hooks"
 
@@ -9,37 +9,37 @@ export const FileNameTodoSelector = ({
 	selectedIdMap,
 	createSelectorHandler,
 }: {
-	farm: FileNameTodoFarm
+	farm: TodoNode
 	selectedIdMap: SelectedIdMap
 	createSelectorHandler: SelectionHandlerCreator
 }) => {
 	return (
 		<div className={c()}>
-			<h1 className={c("tag-or-folder")}>{farm.tagOrFolder}</h1>
+			<h1 className={c("tag-or-folder")}>{farm.value}</h1>
 			<ul className={c("items")}>
-				{farm.todos.map((item) => {
-					const ctx = [farm.tagOrFolder, item.path]
-					const id = ctx.join("/")
-					const selectedType = selectedIdMap.get(id)
-					const selectedAs = selectedType
-						? c("item", `selected-as-${selectedType}`)
-						: ""
-					return (
-						<li
-							key={item.path}
-							className={`${c("item")} ${selectedAs}`}
-							onClick={createSelectorHandler(ctx)}
-							onKeyDown={createSelectorHandler(ctx)}
-						>
-							{item.img ? (
-								<img src={item.img} alt={item.path} />
-							) : (
-								<div className={c("item-noimg")} />
-							)}
-							{item.path}
-						</li>
-					)
-				})}
+				{farm.children
+					.filter(FilenameTodoNode.mustBeFilenameTodoNode)
+					.map((todo) => {
+						const selectedType = selectedIdMap.get(todo.id)
+						const selectedAs = selectedType
+							? c("item", `selected-as-${selectedType}`)
+							: ""
+						return (
+							<li
+								key={todo.id}
+								className={`${c("item")} ${selectedAs}`}
+								onClick={createSelectorHandler(todo)}
+								onKeyDown={createSelectorHandler(todo)}
+							>
+								{todo.img ? (
+									<img src={todo.img} alt={todo.value} />
+								) : (
+									<div className={c("item-noimg")} />
+								)}
+								{todo.value}
+							</li>
+						)
+					})}
 			</ul>
 		</div>
 	)

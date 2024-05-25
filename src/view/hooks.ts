@@ -4,16 +4,12 @@ import {
 	useEffect,
 	useState,
 } from "react"
-import {
-	CheckboxTodo,
-	type CheckboxTodoFarmParcel,
-	type TodoFarm,
-} from "src/model"
+import type { TodoNode } from "src/model"
 
 export const useFarms = (
-	registerListener: (callback: (todoFarms: TodoFarm[]) => void) => void,
+	registerListener: (callback: (todoFarms: TodoNode[]) => void) => void,
 ) => {
-	const [farms, setFarms] = useState<TodoFarm[]>([])
+	const [farms, setFarms] = useState<TodoNode[]>([])
 	useEffect(() => {
 		return registerListener((farms) => setFarms(farms))
 	}, [registerListener])
@@ -24,10 +20,10 @@ export const useFarms = (
 export type SelectedType = "copy" | "parent"
 export type SelectedIdMap = Map<string, SelectedType>
 export type SelectionHandlerCreator = (
-	currentCtx: string[],
-	children?: CheckboxTodo[] | CheckboxTodoFarmParcel[],
-	isGroupName?: boolean,
+	todoNode: TodoNode,
 ) => EventHandler<SyntheticEvent>
+
+// TODO: Rename to selectedTypeMap
 export const useSelectedIdMap = (
 	initialState: SelectedIdMap,
 	setSelectedIdMapToViewState: (SelectedIdMap: SelectedIdMap) => void,
@@ -39,133 +35,99 @@ export const useSelectedIdMap = (
 		setSelectedIdMapToViewState(newMap)
 	}
 
-	const getChildInfo = (
-		target: CheckboxTodo | CheckboxTodoFarmParcel,
-		ctx: string[],
-	) => {
-		const isCheckboxTodo = target instanceof CheckboxTodo
-		const text = isCheckboxTodo ? target.text : target.name
-		const children = isCheckboxTodo ? target.children : target.todos
-		const currentCtx = [...ctx, text]
-		const id = currentCtx.join("/")
-		return { isCheckboxTodo, currentCtx, id, children }
-	}
-
-	const addChildrenRecursive = (
+	const selectChildrenRecursive = (
 		map: SelectedIdMap,
-		children: CheckboxTodo[] | CheckboxTodoFarmParcel[],
-		ctx: string[],
+		todoNode: TodoNode,
 		selectedType: "copy",
 	) => {
-		for (const child of children) {
-			const { isCheckboxTodo, currentCtx, id, children } = getChildInfo(
-				child,
-				ctx,
-			)
-			map.set(id, isCheckboxTodo ? selectedType : "parent")
-			addChildrenRecursive(map, children, currentCtx, selectedType)
+		for (const child of todoNode.children) {
+			map.set(child.id, child.nodeType === "group" ? "parent" : selectedType)
+			selectChildrenRecursive(map, child, selectedType)
 		}
 	}
 
-	const deleteChildrenRecursive = (
+	const deselectChildrenRecursive = (
 		map: SelectedIdMap,
-		children: CheckboxTodo[] | CheckboxTodoFarmParcel[],
-		ctx: string[],
+		todoNode: TodoNode,
 	) => {
-		for (const child of children) {
-			const { currentCtx, id, children } = getChildInfo(child, ctx)
-			map.delete(id)
-			deleteChildrenRecursive(map, children, currentCtx)
+		for (const child of todoNode.children) {
+			map.delete(child.id)
+			deselectChildrenRecursive(map, child)
 		}
 	}
 
 	const areAllChildrenSelected = (
 		map: SelectedIdMap,
-		children: CheckboxTodo[] | CheckboxTodoFarmParcel[],
-		ctx: string[],
-	): boolean => {
-		for (const child of children) {
-			const { currentCtx, id, children } = getChildInfo(child, ctx)
-			if (!map.has(id)) return false
-			if (!areAllChildrenSelected(map, children, currentCtx)) return false
-		}
-		return true
+		todoNode: TodoNode,
+	): boolean =>
+		!todoNode.children.find(
+			(child) =>
+				!map.has(child.id) ||
+				(child.nodeType === "todo" && map.get(child.id) === "parent") ||
+				!areAllChildrenSelected(map, child),
+		)
+
+	const selectParentRecursive = (map: SelectedIdMap, todoNode: TodoNode) => {
+		if (todoNode.parent === undefined) return
+		const { parent } = todoNode
+		if (map.has(parent.id)) return
+		map.set(parent.id, "parent")
+		selectParentRecursive(map, parent)
 	}
 
-	const addParentRecursive = (map: SelectedIdMap, ctx: string[]) => {
-		const currentCtx = ctx.slice(0, -1)
-		if (currentCtx.length === 0) return
-		const id = currentCtx.join("/")
-		if (map.has(id)) return
-		map.set(id, "parent")
-		addParentRecursive(map, currentCtx)
-	}
-
-	const deleteParentRecursive = (map: SelectedIdMap, ctx: string[]) => {
-		const currentCtx = ctx.slice(0, -1)
-		if (currentCtx.length === 0) return
-		const id = currentCtx.join("/")
+	const deselectParentRecursive = (map: SelectedIdMap, todoNode: TodoNode) => {
+		if (todoNode.parent === undefined) return
+		const { parent } = todoNode
 		const hasNoSelectedChildren =
-			Array.from(map.keys()).find((k) => k.startsWith(`${id}/`)) === undefined
-		if (hasNoSelectedChildren && map.get(id) === "parent") {
-			map.delete(id)
-			deleteParentRecursive(map, currentCtx)
+			Array.from(map.keys()).find((k) => k.startsWith(`${parent.id}/`)) ===
+			undefined
+		if (hasNoSelectedChildren && map.get(parent.id) === "parent") {
+			map.delete(parent.id)
+			deselectParentRecursive(map, parent)
 		}
+	}
+
+	const select = (
+		todoNode: TodoNode,
+		selectedType: Exclude<SelectedType, "parent">,
+	) => {
+		const newMap = new Map(selectedIdMap)
+		newMap.set(
+			todoNode.id,
+			todoNode.nodeType === "group" ? "parent" : selectedType,
+		)
+		selectChildrenRecursive(newMap, todoNode, selectedType)
+		selectParentRecursive(newMap, todoNode)
+		setSelectedIdMap(newMap)
+	}
+
+	const deselect = (todoNode: TodoNode) => {
+		const newMap = new Map(selectedIdMap)
+		newMap.delete(todoNode.id)
+		deselectChildrenRecursive(newMap, todoNode)
+		deselectParentRecursive(newMap, todoNode)
+		setSelectedIdMap(newMap)
 	}
 
 	const createSelectorHandler: SelectionHandlerCreator =
-		(
-			currentCtx: string[],
-			children: CheckboxTodo[] | CheckboxTodoFarmParcel[] = [],
-			isGroupName = false,
-		) =>
-		(e) => {
+		(todoNode: TodoNode) => (e) => {
 			e.stopPropagation()
 			const selectedType = "copy"
-
-			const map = new Map(selectedIdMap)
-			const id = currentCtx.join("/")
-			switch (map.get(id)) {
-				// biome-ignore lint: lint/suspicious/noFallthroughSwitchClause
-				case "parent":
-					if (isGroupName) {
-						if (areAllChildrenSelected(map, children, currentCtx)) {
-							map.delete(id)
-							deleteChildrenRecursive(map, children, currentCtx)
-							deleteParentRecursive(map, currentCtx)
-						} else {
-							addChildrenRecursive(map, children, currentCtx, selectedType)
-						}
-						break
-					}
-				// this fallthrough is intentional
-				case undefined:
-					map.set(id, isGroupName ? "parent" : selectedType)
-					addChildrenRecursive(map, children, currentCtx, selectedType)
-					addParentRecursive(map, currentCtx)
-					break
-				case selectedType:
-					map.delete(id)
-					deleteChildrenRecursive(map, children, currentCtx)
-					deleteParentRecursive(map, currentCtx)
-					break
+			const currentType = selectedIdMap.get(todoNode.id)
+			if (currentType === "parent" && todoNode.nodeType === "group") {
+				return areAllChildrenSelected(selectedIdMap, todoNode)
+					? deselect(todoNode)
+					: select(todoNode, selectedType)
 			}
-			setSelectedIdMap(map)
+			currentType === selectedType
+				? deselect(todoNode)
+				: select(todoNode, selectedType)
 		}
 
 	const createSelectedHandler: SelectionHandlerCreator =
-		(
-			currentCtx: string[],
-			children: CheckboxTodo[] | CheckboxTodoFarmParcel[] = [],
-		) =>
-		(e) => {
+		(todoNode: TodoNode) => (e) => {
 			e.stopPropagation()
-			const map = new Map(selectedIdMap)
-			const id = currentCtx.join("/")
-			map.delete(id)
-			deleteChildrenRecursive(map, children, currentCtx)
-			deleteParentRecursive(map, currentCtx)
-			setSelectedIdMap(map)
+			deselect(todoNode)
 		}
 
 	return {

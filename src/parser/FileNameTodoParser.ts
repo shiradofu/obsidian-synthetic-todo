@@ -1,6 +1,6 @@
 import type { TFile } from "obsidian"
 import { imgExts } from "src/constants"
-import { FileNameTodo, FileNameTodoFarm } from "src/model"
+import { FilenameTodoNode, TodoNode } from "src/model"
 
 type TagOrFolder = string
 
@@ -69,10 +69,11 @@ export class FileNameTodoParser {
 		const sortedResult = this.order.flatMap((tagOrFolder) => {
 			const todos = this.resultMap.get(tagOrFolder)
 			if (todos === undefined) return []
-			return new FileNameTodoFarm(
-				tagOrFolder,
-				todos.map(({ path, img }) => new FileNameTodo(path, img)),
-			)
+			const filenameTodoFarm = new TodoNode(tagOrFolder)
+			for (const { path, img } of todos) {
+				filenameTodoFarm.addChild(new FilenameTodoNode(path, img))
+			}
+			return filenameTodoFarm
 		})
 		this.resultMap = new Map()
 		return sortedResult

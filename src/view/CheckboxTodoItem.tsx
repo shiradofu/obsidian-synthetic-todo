@@ -1,8 +1,7 @@
-import type { HTMLAttributes, MouseEventHandler, ReactNode } from "react"
-import { removeDupMarker } from "src/helper"
-import type { CheckboxTodo } from "src/model"
+import type { HTMLAttributes, ReactNode } from "react"
+import { CheckboxTodoNode, type TodoNode } from "src/model"
 import { bem } from "./bem"
-import type { SelectedIdMap } from "./hooks"
+import type { SelectedIdMap, SelectionHandlerCreator } from "./hooks"
 
 const c = bem("CheckboxTodoItem")
 
@@ -12,13 +11,13 @@ export const CheckboxTodoItem = ({
 	selectedType,
 	...props
 }: {
-	todo: CheckboxTodo
+	todo: TodoNode
 	children?: ReactNode
 	selectedType: string | undefined
 } & HTMLAttributes<HTMLLIElement>) => {
 	const selectedAs = selectedType ? c("", `selected-as-${selectedType}`) : ""
-	const isChecked = todo.status !== " " ? "is-checked" : ""
-	const status = todo.status !== " " ? todo.status : ""
+	const status = (todo instanceof CheckboxTodoNode && todo.status) || " "
+	const isChecked = status !== " " ? "is-checked" : ""
 	return (
 		<li
 			data-task={status}
@@ -32,7 +31,7 @@ export const CheckboxTodoItem = ({
 					checked={!!isChecked}
 					readOnly
 				/>
-				{removeDupMarker(todo.text)}
+				{todo.value}
 			</span>
 			{children}
 		</li>
@@ -40,29 +39,22 @@ export const CheckboxTodoItem = ({
 }
 
 export const renderCheckboxTodoItemTree = (
-	todos: CheckboxTodo[],
-	parentCtx: string[],
-	createOnClick: (
-		currentCtx: string[],
-		children: CheckboxTodo[],
-	) => MouseEventHandler,
+	todos: TodoNode[],
+	createOnClick: SelectionHandlerCreator,
 	selectedIdMap: SelectedIdMap,
 ) => (
 	<ul>
 		{todos.map((todo) => {
-			const currentCtx = [...parentCtx, todo.text]
-			const id = currentCtx.join("/")
 			return (
 				<CheckboxTodoItem
-					key={id}
+					key={todo.id}
 					todo={todo}
-					onClick={createOnClick(currentCtx, todo.children)}
-					selectedType={selectedIdMap.get(id)}
+					onClick={createOnClick(todo)}
+					selectedType={selectedIdMap.get(todo.id)}
 				>
 					{todo.children.length > 0 &&
 						renderCheckboxTodoItemTree(
 							todo.children,
-							currentCtx,
 							createOnClick,
 							selectedIdMap,
 						)}

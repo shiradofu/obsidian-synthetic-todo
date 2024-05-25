@@ -6,7 +6,7 @@ import {
 	type WorkspaceLeaf,
 } from "obsidian"
 import { type Root, createRoot } from "react-dom/client"
-import type { TodoFarm } from "../model"
+import type { TodoNode } from "src/model"
 import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
@@ -33,7 +33,7 @@ export class SyntheticTodoView extends ItemView {
 	private pinned: string[] = []
 	private tagsAndFoldersForFileNameTodos: string[] = []
 	private parser?: Parser
-	private farmListeners: ((todoFarms: TodoFarm[]) => void)[] = []
+	private farmListeners: ((todoFarms: TodoNode[]) => void)[] = []
 	private reactRoot: Root | null = null
 	private selectedIdMap: SelectedIdMap = new Map()
 
@@ -122,7 +122,7 @@ export class SyntheticTodoView extends ItemView {
 	}
 
 	private registerFarmListener = (
-		callback: (todoFarms: TodoFarm[]) => void,
+		callback: (todoFarms: TodoNode[]) => void,
 	) => {
 		this.farmListeners.push(callback)
 		return () => this.farmListeners.filter((l) => l !== callback)

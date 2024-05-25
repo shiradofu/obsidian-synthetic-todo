@@ -1,15 +1,10 @@
 import type { CachedMetadata, ListItemCache, TFile } from "obsidian"
-import { addDupMarker } from "src/helper"
-import {
-	CheckboxTodo,
-	CheckboxTodoFarm,
-	CheckboxTodoFarmParcel,
-} from "src/model"
+import { CheckboxTodoNode, TodoNode } from "src/model"
 
 type PartiallyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 
 export class CheckboxTodoParser {
-	private results: CheckboxTodoFarm[] = []
+	private results: TodoNode[] = []
 
 	constructor(
 		private getFileCache: (file: TFile) => CachedMetadata | null,
@@ -21,50 +16,44 @@ export class CheckboxTodoParser {
 		const targets = this.extractTargetLines(file)
 		if (targets.length === 0) return false
 
-		const lineNum2TodoMap = new Map<number, CheckboxTodo>()
-		const [uniqueHeading] = this.createDupCounter()
-		const [uniqueTask, clearTaskDupChekcer] = this.createDupCounter()
-
-		let wipParcel = new CheckboxTodoFarmParcel([], "")
-		const parcels: CheckboxTodoFarmParcel[] = []
-
+		const farm = new TodoNode(file.path)
+		let wipParcel = new TodoNode("")
+		const lineNum2TodoMap = new Map<number, CheckboxTodoNode>()
 		const fileLines = (await this.readFile(file)).split("\n")
 
 		for (const t of targets) {
 			switch (true) {
 				case "task" in t: {
-					const { line } = t.position.start
-					const rawText = fileLines.at(line)
-					if (!rawText) continue
-					const match = rawText.indexOf("]")
-					const text = match > -1 ? rawText.substring(match + 2) : ""
+					const {
+						task: status,
+						position: {
+							start: { line },
+						},
+						parent: parentLineNum,
+					} = t
+					const text = this.extractTodoText(fileLines.at(line))
 					if (!text) continue
-					const todo = new CheckboxTodo(uniqueTask(text), t.task)
+					const todo = new CheckboxTodoNode(text, status, line)
 					lineNum2TodoMap.set(line, todo)
-					const parentLineNum = t.parent
 					parentLineNum < 0
-						? wipParcel.todos.push(todo)
-						: lineNum2TodoMap.get(parentLineNum)?.children.push(todo)
+						? wipParcel.addChild(todo)
+						: lineNum2TodoMap.get(parentLineNum)?.addChild(todo)
 					break
 				}
 				case "heading" in t: {
-					if (wipParcel.todos.length > 0) parcels.push(wipParcel)
-					clearTaskDupChekcer()
-
-					wipParcel = new CheckboxTodoFarmParcel([], uniqueHeading(t.heading))
+					if (wipParcel.children.length > 0) farm.addChild(wipParcel)
+					wipParcel = new TodoNode(t.heading)
 				}
 			}
 		}
-		if (wipParcel.todos.length > 0) {
-			parcels.push(wipParcel)
-		}
-		this.results.push(new CheckboxTodoFarm(file.path, parcels))
+		if (wipParcel.children.length > 0) farm.addChild(wipParcel)
+		this.results.push(farm)
 		return true
 	}
 
 	public finish() {
 		for (const p of [...this.pinned].reverse()) {
-			const i = this.results.findIndex(({ path }) => path === p)
+			const i = this.results.findIndex(({ value }) => value === p)
 			if (i === -1) continue
 			const shouldPinned = this.results.splice(i, 1)[0]
 			if (!shouldPinned) continue
@@ -93,18 +82,9 @@ export class CheckboxTodoParser {
 		)
 	}
 
-	private createDupCounter() {
-		const counterMap = new Map<string, number>()
-		function addSuffixIfDup(name: string) {
-			const count = counterMap.get(name)
-			count === undefined
-				? counterMap.set(name, 1)
-				: counterMap.set(name, count + 1)
-			return count === undefined ? name : addDupMarker(name, count)
-		}
-		function clearMap() {
-			counterMap.clear()
-		}
-		return [addSuffixIfDup, clearMap] as const
+	private extractTodoText(rawText: string | undefined) {
+		if (!rawText) return
+		const match = rawText.indexOf("]")
+		return match > -1 ? rawText.substring(match + 2) : undefined
 	}
 }

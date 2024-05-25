@@ -1,5 +1,5 @@
 import { StrictMode } from "react"
-import type { TodoFarm } from "../model"
+import type { TodoNode } from "src/model"
 import { Card } from "./Card"
 import { CheckboxTodoSelector } from "./CheckboxTodoSelector"
 import { FileNameTodoSelector } from "./FileNameTodoSelector"
@@ -10,7 +10,7 @@ import { type SelectedIdMap, useFarms, useSelectedIdMap } from "./hooks"
 const c = bem()
 
 type Props = {
-	registerFarmListener: (callback: (todoFarms: TodoFarm[]) => void) => void
+	registerFarmListener: (callback: (todoFarms: TodoNode[]) => void) => void
 	setSelectedIdMapToViewState: (SelectedIdMap: SelectedIdMap) => void
 	selectedIdMapHydration: SelectedIdMap
 }
@@ -33,26 +33,18 @@ export const Selector = ({
 			<main id={c()}>
 				<div className={c("left")}>
 					{farms.map((f) => {
-						switch (f.todoType) {
-							case "checkbox":
-								return (
-									<CheckboxTodoSelector
-										farm={f}
-										selectedIdMap={selectedIdMap}
-										createSelectorHandler={createSelectorHandler}
-										key={f.path}
-									/>
-								)
-							case "fileName":
-								return (
-									<FileNameTodoSelector
-										farm={f}
-										selectedIdMap={selectedIdMap}
-										createSelectorHandler={createSelectorHandler}
-										key={f.tagOrFolder}
-									/>
-								)
-						}
+						const TodoSelector =
+							f.todoType === "checkbox"
+								? CheckboxTodoSelector
+								: FileNameTodoSelector
+						return (
+							<TodoSelector
+								key={f.value}
+								farm={f}
+								selectedIdMap={selectedIdMap}
+								createSelectorHandler={createSelectorHandler}
+							/>
+						)
 					})}
 				</div>
 				<div className={c("right")}>
@@ -63,20 +55,20 @@ export const Selector = ({
 									case "checkbox":
 										return (
 											<CheckboxTodoSelected
+												key={f.id}
 												farm={f}
 												selectedIdMap={selectedIdMap}
 												createSelectedHandler={createSelectedHandler}
-												key={f.path}
 												{...config}
 											/>
 										)
-									case "fileName":
+									case "filename":
 										return (
 											<FileNameTodoSelected
+												key={f.id}
 												farm={f}
 												selectedIdMap={selectedIdMap}
 												createSelectedHandler={createSelectedHandler}
-												key={f.tagOrFolder}
 											/>
 										)
 								}
