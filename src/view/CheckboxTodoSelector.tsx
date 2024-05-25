@@ -2,17 +2,17 @@ import { CheckboxTodoNode, type TodoNode } from "src/model"
 import { Card } from "./Card"
 import { renderCheckboxTodoItemTree } from "./CheckboxTodoItem"
 import { bem } from "./bem"
-import type { SelectedIdMap, SelectionHandlerCreator } from "./hooks"
+import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
 
 const c = bem("CheckboxTodoSelector")
 
 export const CheckboxTodoSelector = ({
 	farm,
-	selectedIdMap,
+	selectedTypeMap,
 	createSelectorHandler,
 }: {
 	farm: TodoNode
-	selectedIdMap: SelectedIdMap
+	selectedTypeMap: SelectedTypeMap
 	createSelectorHandler: SelectionHandlerCreator
 }) => {
 	return (
@@ -42,7 +42,7 @@ export const CheckboxTodoSelector = ({
 							{renderCheckboxTodoItemTree(
 								parcel.children.filter(CheckboxTodoNode.mustBeCheckboxTodoNode),
 								createSelectorHandler,
-								selectedIdMap,
+								selectedTypeMap,
 							)}
 						</div>
 					</div>

@@ -5,24 +5,24 @@ import { CheckboxTodoSelector } from "./CheckboxTodoSelector"
 import { FileNameTodoSelector } from "./FileNameTodoSelector"
 import { CheckboxTodoSelected, FileNameTodoSelected } from "./Selected"
 import { bem } from "./bem"
-import { type SelectedIdMap, useFarms, useSelectedIdMap } from "./hooks"
+import { type SelectedTypeMap, useFarms, useSelectedTypeMap } from "./hooks"
 
 const c = bem()
 
 type Props = {
 	registerFarmListener: (callback: (todoFarms: TodoNode[]) => void) => void
-	setSelectedIdMapToViewState: (SelectedIdMap: SelectedIdMap) => void
-	selectedIdMapHydration: SelectedIdMap
+	setSelectedTypeMapToViewState: (SelectedTypeMap: SelectedTypeMap) => void
+	selectedTypeMapHydration: SelectedTypeMap
 }
 
 export const Selector = ({
 	registerFarmListener,
-	selectedIdMapHydration,
-	setSelectedIdMapToViewState,
+	selectedTypeMapHydration,
+	setSelectedTypeMapToViewState,
 }: Props) => {
 	const farms = useFarms(registerFarmListener)
-	const { selectedIdMap, createSelectorHandler, createSelectedHandler } =
-		useSelectedIdMap(selectedIdMapHydration, setSelectedIdMapToViewState)
+	const { selectedTypeMap, createSelectorHandler, createSelectedHandler } =
+		useSelectedTypeMap(selectedTypeMapHydration, setSelectedTypeMapToViewState)
 	const config = {
 		groupByFileName: true,
 		groupByHeading: false,
@@ -41,7 +41,7 @@ export const Selector = ({
 							<TodoSelector
 								key={f.value}
 								farm={f}
-								selectedIdMap={selectedIdMap}
+								selectedTypeMap={selectedTypeMap}
 								createSelectorHandler={createSelectorHandler}
 							/>
 						)
@@ -57,7 +57,7 @@ export const Selector = ({
 											<CheckboxTodoSelected
 												key={f.id}
 												farm={f}
-												selectedIdMap={selectedIdMap}
+												selectedTypeMap={selectedTypeMap}
 												createSelectedHandler={createSelectedHandler}
 												{...config}
 											/>
@@ -67,7 +67,7 @@ export const Selector = ({
 											<FileNameTodoSelected
 												key={f.id}
 												farm={f}
-												selectedIdMap={selectedIdMap}
+												selectedTypeMap={selectedTypeMap}
 												createSelectedHandler={createSelectedHandler}
 											/>
 										)

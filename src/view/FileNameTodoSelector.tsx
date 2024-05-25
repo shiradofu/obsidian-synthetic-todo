@@ -1,16 +1,16 @@
 import { FilenameTodoNode, type TodoNode } from "src/model"
 import { bem } from "./bem"
-import type { SelectedIdMap, SelectionHandlerCreator } from "./hooks"
+import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
 
 const c = bem("FileNameTodoSelector")
 
 export const FileNameTodoSelector = ({
 	farm,
-	selectedIdMap,
+	selectedTypeMap,
 	createSelectorHandler,
 }: {
 	farm: TodoNode
-	selectedIdMap: SelectedIdMap
+	selectedTypeMap: SelectedTypeMap
 	createSelectorHandler: SelectionHandlerCreator
 }) => {
 	return (
@@ -20,7 +20,7 @@ export const FileNameTodoSelector = ({
 				{farm.children
 					.filter(FilenameTodoNode.mustBeFilenameTodoNode)
 					.map((todo) => {
-						const selectedType = selectedIdMap.get(todo.id)
+						const selectedType = selectedTypeMap.get(todo.id)
 						const selectedAs = selectedType
 							? c("item", `selected-as-${selectedType}`)
 							: ""

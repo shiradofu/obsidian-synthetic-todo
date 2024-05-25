@@ -4,7 +4,7 @@ import {
 	CheckboxTodoItem,
 	renderCheckboxTodoItemTree,
 } from "./CheckboxTodoItem"
-import type { SelectedIdMap, SelectionHandlerCreator } from "./hooks"
+import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
 
 const RenderCheckboxIf = ({
 	cond,
@@ -24,13 +24,13 @@ const RenderCheckboxIf = ({
 
 export const CheckboxTodoSelected = ({
 	farm,
-	selectedIdMap,
+	selectedTypeMap,
 	createSelectedHandler,
 	groupByFileName,
 	groupByHeading,
 }: {
 	farm: TodoNode
-	selectedIdMap: SelectedIdMap
+	selectedTypeMap: SelectedTypeMap
 	createSelectedHandler: SelectionHandlerCreator
 	groupByFileName: boolean
 	groupByHeading: boolean
@@ -39,7 +39,7 @@ export const CheckboxTodoSelected = ({
 		<RenderCheckboxIf
 			cond={groupByFileName}
 			todo={farm}
-			selectedType={selectedIdMap.get(farm.id)}
+			selectedType={selectedTypeMap.get(farm.id)}
 			onClick={createSelectedHandler(farm)}
 		>
 			{farm.children.map((parcel) => {
@@ -50,13 +50,13 @@ export const CheckboxTodoSelected = ({
 						<RenderCheckboxIf
 							cond={cond}
 							todo={parcel}
-							selectedType={selectedIdMap.get(parcel.id)}
+							selectedType={selectedTypeMap.get(parcel.id)}
 							onClick={createSelectedHandler(parcel)}
 						>
 							{renderCheckboxTodoItemTree(
 								parcel.children.filter(CheckboxTodoNode.mustBeCheckboxTodoNode),
 								createSelectedHandler,
-								selectedIdMap,
+								selectedTypeMap,
 							)}
 						</RenderCheckboxIf>
 					</UL>
@@ -68,18 +68,18 @@ export const CheckboxTodoSelected = ({
 
 export const FileNameTodoSelected = ({
 	farm,
-	selectedIdMap,
+	selectedTypeMap,
 	createSelectedHandler,
 }: {
 	farm: TodoNode
-	selectedIdMap: SelectedIdMap
+	selectedTypeMap: SelectedTypeMap
 	createSelectedHandler: SelectionHandlerCreator
 }) => (
 	<>
 		{renderCheckboxTodoItemTree(
 			farm.children,
 			createSelectedHandler,
-			selectedIdMap,
+			selectedTypeMap,
 		)}
 	</>
 )

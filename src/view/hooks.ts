@@ -18,25 +18,24 @@ export const useFarms = (
 }
 
 export type SelectedType = "copy" | "parent"
-export type SelectedIdMap = Map<string, SelectedType>
+export type SelectedTypeMap = Map<string, SelectedType>
 export type SelectionHandlerCreator = (
 	todoNode: TodoNode,
 ) => EventHandler<SyntheticEvent>
 
-// TODO: Rename to selectedTypeMap
-export const useSelectedIdMap = (
-	initialState: SelectedIdMap,
-	setSelectedIdMapToViewState: (SelectedIdMap: SelectedIdMap) => void,
+export const useSelectedTypeMap = (
+	initialState: SelectedTypeMap,
+	setSelectedTypeMapToViewState: (selectedTypeMap: SelectedTypeMap) => void,
 ) => {
-	const [selectedIdMap, _setSelectedIdMapToReactState] =
-		useState<SelectedIdMap>(initialState)
-	const setSelectedIdMap = (newMap: SelectedIdMap) => {
-		_setSelectedIdMapToReactState(newMap)
-		setSelectedIdMapToViewState(newMap)
+	const [selectedTypeMap, _setSelectedTypeMapToReactState] =
+		useState<SelectedTypeMap>(initialState)
+	const setSelectedTypeMap = (newMap: SelectedTypeMap) => {
+		_setSelectedTypeMapToReactState(newMap)
+		setSelectedTypeMapToViewState(newMap)
 	}
 
 	const selectChildrenRecursive = (
-		map: SelectedIdMap,
+		map: SelectedTypeMap,
 		todoNode: TodoNode,
 		selectedType: "copy",
 	) => {
@@ -47,7 +46,7 @@ export const useSelectedIdMap = (
 	}
 
 	const deselectChildrenRecursive = (
-		map: SelectedIdMap,
+		map: SelectedTypeMap,
 		todoNode: TodoNode,
 	) => {
 		for (const child of todoNode.children) {
@@ -57,7 +56,7 @@ export const useSelectedIdMap = (
 	}
 
 	const areAllChildrenSelected = (
-		map: SelectedIdMap,
+		map: SelectedTypeMap,
 		todoNode: TodoNode,
 	): boolean =>
 		!todoNode.children.find(
@@ -67,7 +66,7 @@ export const useSelectedIdMap = (
 				!areAllChildrenSelected(map, child),
 		)
 
-	const selectParentRecursive = (map: SelectedIdMap, todoNode: TodoNode) => {
+	const selectParentRecursive = (map: SelectedTypeMap, todoNode: TodoNode) => {
 		if (todoNode.parent === undefined) return
 		const { parent } = todoNode
 		if (map.has(parent.id)) return
@@ -75,7 +74,10 @@ export const useSelectedIdMap = (
 		selectParentRecursive(map, parent)
 	}
 
-	const deselectParentRecursive = (map: SelectedIdMap, todoNode: TodoNode) => {
+	const deselectParentRecursive = (
+		map: SelectedTypeMap,
+		todoNode: TodoNode,
+	) => {
 		if (todoNode.parent === undefined) return
 		const { parent } = todoNode
 		const hasNoSelectedChildren =
@@ -91,31 +93,31 @@ export const useSelectedIdMap = (
 		todoNode: TodoNode,
 		selectedType: Exclude<SelectedType, "parent">,
 	) => {
-		const newMap = new Map(selectedIdMap)
+		const newMap = new Map(selectedTypeMap)
 		newMap.set(
 			todoNode.id,
 			todoNode.nodeType === "group" ? "parent" : selectedType,
 		)
 		selectChildrenRecursive(newMap, todoNode, selectedType)
 		selectParentRecursive(newMap, todoNode)
-		setSelectedIdMap(newMap)
+		setSelectedTypeMap(newMap)
 	}
 
 	const deselect = (todoNode: TodoNode) => {
-		const newMap = new Map(selectedIdMap)
+		const newMap = new Map(selectedTypeMap)
 		newMap.delete(todoNode.id)
 		deselectChildrenRecursive(newMap, todoNode)
 		deselectParentRecursive(newMap, todoNode)
-		setSelectedIdMap(newMap)
+		setSelectedTypeMap(newMap)
 	}
 
 	const createSelectorHandler: SelectionHandlerCreator =
 		(todoNode: TodoNode) => (e) => {
 			e.stopPropagation()
 			const selectedType = "copy"
-			const currentType = selectedIdMap.get(todoNode.id)
+			const currentType = selectedTypeMap.get(todoNode.id)
 			if (currentType === "parent" && todoNode.nodeType === "group") {
-				return areAllChildrenSelected(selectedIdMap, todoNode)
+				return areAllChildrenSelected(selectedTypeMap, todoNode)
 					? deselect(todoNode)
 					: select(todoNode, selectedType)
 			}
@@ -131,7 +133,7 @@ export const useSelectedIdMap = (
 		}
 
 	return {
-		selectedIdMap,
+		selectedTypeMap,
 		createSelectorHandler,
 		createSelectedHandler,
 	}

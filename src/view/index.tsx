@@ -11,7 +11,7 @@ import { Parser } from "../parser"
 import { createEmbeddedSearch } from "../search"
 import type { SortOrder } from "../settings"
 import { Selector } from "./Selector"
-import type { SelectedIdMap, SelectedType } from "./hooks"
+import type { SelectedType, SelectedTypeMap } from "./hooks"
 
 const t = "synthetic-todo-view" as const
 
@@ -23,7 +23,7 @@ type InitialState = {
 }
 
 type State = InitialState & {
-	selectedIdMap: Record<string, SelectedType>
+	selectedTypeMap: Record<string, SelectedType>
 }
 
 export class SyntheticTodoView extends ItemView {
@@ -35,7 +35,7 @@ export class SyntheticTodoView extends ItemView {
 	private parser?: Parser
 	private farmListeners: ((todoFarms: TodoNode[]) => void)[] = []
 	private reactRoot: Root | null = null
-	private selectedIdMap: SelectedIdMap = new Map()
+	private selectedTypeMap: SelectedTypeMap = new Map()
 
 	public static register() {
 		return [t, (leaf: WorkspaceLeaf) => new SyntheticTodoView(leaf)] as const
@@ -67,8 +67,10 @@ export class SyntheticTodoView extends ItemView {
 			this.pinned,
 			this.tagsAndFoldersForFileNameTodos,
 		)
-		if ("selectedIdMap" in state) {
-			this.selectedIdMap = new Map(Object.entries(state.selectedIdMap || {}))
+		if ("selectedTypeMap" in state) {
+			this.selectedTypeMap = new Map(
+				Object.entries(state.selectedTypeMap || {}),
+			)
 		}
 		await this.initUI()
 		return super.setState(state, result)
@@ -80,7 +82,7 @@ export class SyntheticTodoView extends ItemView {
 			sort: this.sort,
 			pinned: this.pinned,
 			tagsAndFoldersForFileNameTodos: this.tagsAndFoldersForFileNameTodos,
-			selectedIdMap: Object.fromEntries(this.selectedIdMap),
+			selectedTypeMap: Object.fromEntries(this.selectedTypeMap),
 		}
 	}
 
@@ -98,13 +100,13 @@ export class SyntheticTodoView extends ItemView {
 		this.reactRoot.render(
 			<Selector
 				registerFarmListener={this.registerFarmListener}
-				setSelectedIdMapToViewState={this.setSelectedIdMapToViewState}
-				selectedIdMapHydration={this.selectedIdMap}
+				setSelectedTypeMapToViewState={this.setSelectedTypeMapToViewState}
+				selectedTypeMapHydration={this.selectedTypeMap}
 			/>,
 		)
 
 		const searchEl = container.createEl("div")
-		searchEl.style.display = "none"
+		// searchEl.style.display = "none"
 		const es = await createEmbeddedSearch(
 			this.app,
 			searchEl,
@@ -128,8 +130,10 @@ export class SyntheticTodoView extends ItemView {
 		return () => this.farmListeners.filter((l) => l !== callback)
 	}
 
-	private setSelectedIdMapToViewState = (selectedIdMap: SelectedIdMap) => {
-		this.selectedIdMap = selectedIdMap
+	private setSelectedTypeMapToViewState = (
+		selectedTypeMap: SelectedTypeMap,
+	) => {
+		this.selectedTypeMap = selectedTypeMap
 	}
 
 	private async parse(files: TFile[]) {
