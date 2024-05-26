@@ -1,4 +1,4 @@
-import { CheckboxTodoNode, type TodoNode } from "src/model"
+import { CheckboxTodoNode, type GroupNode } from "src/model"
 import { Card } from "./Card"
 import { renderCheckboxTodoItemTree } from "./CheckboxTodoItem"
 import { bem } from "./bem"
@@ -11,7 +11,7 @@ export const CheckboxTodoSelector = ({
 	selectedTypeMap,
 	createSelectorHandler,
 }: {
-	farm: TodoNode
+	farm: GroupNode
 	selectedTypeMap: SelectedTypeMap
 	createSelectorHandler: SelectionHandlerCreator
 }) => {

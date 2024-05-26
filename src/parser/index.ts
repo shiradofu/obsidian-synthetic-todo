@@ -31,8 +31,8 @@ export class Parser {
 	public async parse(files: TFile[]) {
 		await Promise.all(
 			files.map(async (f) => {
-				if (this.fileNameTodoParser.storeIfMatch(f)) return
-				this.checkboxTodoParser.parseIfTaskContained(f)
+				this.fileNameTodoParser.storeIfMatch(f) ||
+					this.checkboxTodoParser.parseIfTaskContained(f)
 			}),
 		)
 

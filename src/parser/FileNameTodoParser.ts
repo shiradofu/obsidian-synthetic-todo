@@ -1,11 +1,15 @@
 import type { TFile } from "obsidian"
 import { imgExts } from "src/constants"
-import { FilenameTodoNode, TodoNode } from "src/model"
+import {
+	FilenameTodoNode,
+	type GroupNode,
+	TagOrFolderTodoNode,
+} from "src/model"
 
 type TagOrFolder = string
 
 export class FileNameTodoParser {
-	private resultMap = new Map<TagOrFolder, { path: string; img?: string }[]>()
+	private farms = new Map<TagOrFolder, GroupNode>()
 	private tags: string[]
 	private folders: string[]
 	private order: string[]
@@ -17,65 +21,44 @@ export class FileNameTodoParser {
 		private getImgPath: (name?: string) => string | undefined,
 		tagsAndFolders: string[],
 	) {
-		const { tags, folders } = tagsAndFolders.reduce(
-			(acc, x) => {
-				x.startsWith("#") ? acc.tags.push(x) : acc.folders.push(x)
-				return acc
-			},
-			{
-				tags: [] as string[],
-				folders: [] as string[],
-			},
-		)
-		this.tags = tags
-		this.folders = folders
+		this.tags = tagsAndFolders.filter((x) => x.startsWith("#"))
+		this.folders = tagsAndFolders.filter((x) => x.endsWith("/"))
 		// tagsAndFolders keeps order spesified by user
 		this.order = tagsAndFolders
 	}
 
 	public storeIfMatch(file: TFile) {
 		const cache = this.getFileCache(file)
-		const fileTags = cache?.tags?.map((t) => t.tag)
-		const match =
-			this.tags.find((t) => fileTags?.contains(t)) ??
+		const fileTags = new Set(cache?.tags?.map((t) => t.tag))
+		const matched =
+			this.tags.find((t) => fileTags.has(t)) ??
 			this.folders.find((folder) => file.path.startsWith(folder))
-		if (!match) return false
-		const firstImg = this.getImgPath(
-			cache?.embeds?.find(({ link }) =>
-				imgExts.includes(link.split(".").at(-1) ?? ""),
-			)?.link,
-		)
-		this.add(match, file.path, firstImg)
+		if (matched === undefined) return false
+
+		const newTodo = new FilenameTodoNode(file.path, this.getFirstImage(file))
+		const farm = this.farms.get(matched)
+		farm !== undefined
+			? farm.addChild(newTodo)
+			: this.farms.set(
+					matched,
+					new TagOrFolderTodoNode(matched).addChild(newTodo),
+				)
 		return true
 	}
 
-	private add(tagOrFolder: string, markdownFilePath: string, imgPath?: string) {
-		const newTodo = {
-			path: (tagOrFolder.endsWith("/")
-				? markdownFilePath.substring(tagOrFolder.length)
-				: markdownFilePath
-			).slice(0, -3), // remove .md
-			img: imgPath,
-		}
-		const todos = this.resultMap.get(tagOrFolder)
-		if (!todos) {
-			this.resultMap.set(tagOrFolder, [newTodo])
-		} else {
-			todos.push(newTodo)
-		}
+	private getFirstImage(file: TFile) {
+		return this.getImgPath(
+			this.getFileCache(file)?.embeds?.find(({ link }) =>
+				imgExts.includes(link.split(".").at(-1) ?? ""),
+			)?.link,
+		)
 	}
 
 	public finish() {
-		const sortedResult = this.order.flatMap((tagOrFolder) => {
-			const todos = this.resultMap.get(tagOrFolder)
-			if (todos === undefined) return []
-			const filenameTodoFarm = new TodoNode(tagOrFolder)
-			for (const { path, img } of todos) {
-				filenameTodoFarm.addChild(new FilenameTodoNode(path, img))
-			}
-			return filenameTodoFarm
-		})
-		this.resultMap = new Map()
-		return sortedResult
+		const sortedFarms = this.order.flatMap(
+			(tagOrFolder) => this.farms.get(tagOrFolder) ?? [],
+		)
+		this.farms.clear()
+		return sortedFarms
 	}
 }

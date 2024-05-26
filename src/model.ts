@@ -1,20 +1,23 @@
-type TodoType = "checkbox" | "filename"
 type NodeType = "todo" | "group"
+type TodoType = "checkbox" | "filename"
+export type GroupType = "file" | "heading" | "tagOrfolder"
 
 export class TodoNode {
 	private _id?: string
 	private _todoType?: TodoType
 	private _parent?: TodoNode
 	public children: TodoNode[] = []
+	public nodeType: NodeType | undefined
+	public groupType: GroupType | undefined
 	private nthSameValueInSiblings?: number
 
 	constructor(public value: string) {}
 
-	get parent() {
+	public get parent() {
 		return this._parent
 	}
 
-	get id(): string {
+	public get id(): string {
 		if (this._id !== undefined) return this._id
 		this._id =
 			this.parent === undefined
@@ -29,28 +32,10 @@ export class TodoNode {
 			: `${this.value}@${this.nthSameValueInSiblings}`
 	}
 
-	get nodeType(): NodeType {
-		if (this instanceof CheckboxTodoNode || this instanceof FilenameTodoNode) {
-			return "todo"
-		}
-		return "group"
-	}
-
-	get todoType() {
+	public get todoType(): TodoType | undefined {
 		if (this._todoType) return this._todoType
-		this._todoType = this.calculateTodoType()
+		this._todoType = this.children.find((c) => c.todoType)?.todoType
 		return this._todoType
-	}
-
-	private calculateTodoType(): TodoType | undefined {
-		switch (true) {
-			case this instanceof CheckboxTodoNode:
-				return "checkbox"
-			case this instanceof FilenameTodoNode:
-				return "filename"
-			default:
-				return this.children.find((c) => c.todoType)?.todoType
-		}
 	}
 
 	public addChild(todoNode: TodoNode) {
@@ -65,10 +50,45 @@ export class TodoNode {
 					: lastSameValueSibling.nthSameValueInSiblings + 1
 		}
 		this.children.push(todoNode)
+		return this
+	}
+}
+
+export class GroupNode extends TodoNode {
+	public nodeType = "group" as const
+
+	constructor(
+		value: string,
+		public groupType: GroupType,
+	) {
+		super(value)
+	}
+}
+
+export class TagOrFolderTodoNode extends GroupNode {
+	public nodeType = "group" as const
+	public children: FilenameTodoNode[] = []
+
+	constructor(value: string) {
+		const groupType = "tagOrfolder" as const
+		super(value, groupType)
+		this.groupType = groupType
+	}
+
+	public addChild(todoNode: TodoNode): this {
+		if (this.isFolder()) {
+			todoNode.value = todoNode.value.substring(this.value.length)
+		}
+		return super.addChild(todoNode)
+	}
+
+	private isFolder() {
+		return this.value.endsWith("/")
 	}
 }
 
 export class CheckboxTodoNode extends TodoNode {
+	public nodeType = "todo" as const
 	public children: CheckboxTodoNode[] = []
 
 	constructor(
@@ -81,28 +101,39 @@ export class CheckboxTodoNode extends TodoNode {
 
 	public static mustBeCheckboxTodoNode(arg: TodoNode): arg is CheckboxTodoNode {
 		if (!(arg instanceof CheckboxTodoNode)) {
-			throw new Error(`Not a checkbox todo: ${arg}`)
+			throw new Error(`Not a checkbox todo: ${JSON.stringify(arg)}`)
 		}
 		return true
 	}
 
-	public addChild(checkboxTodoNode: CheckboxTodoNode): void {
-		super.addChild(checkboxTodoNode)
+	public get todoType() {
+		return "checkbox" as const
+	}
+
+	public addChild(checkboxTodoNode: CheckboxTodoNode) {
+		return super.addChild(checkboxTodoNode)
 	}
 }
 
 export class FilenameTodoNode extends TodoNode {
+	public nodeType = "todo" as const
+
 	constructor(
 		value: string,
 		public img?: string,
 	) {
-		super(value)
+		const trimmed = value.endsWith(".md") ? value.slice(0, -3) : value
+		super(trimmed)
 	}
 
 	public static mustBeFilenameTodoNode(arg: TodoNode): arg is FilenameTodoNode {
 		if (!(arg instanceof FilenameTodoNode)) {
-			throw new Error(`Not a checkbox todo: ${arg}`)
+			throw new Error(`Not a filename todo: ${JSON.stringify(arg)}`)
 		}
 		return true
+	}
+
+	public get todoType() {
+		return "filename" as const
 	}
 }

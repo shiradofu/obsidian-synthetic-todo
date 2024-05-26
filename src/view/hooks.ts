@@ -4,12 +4,12 @@ import {
 	useEffect,
 	useState,
 } from "react"
-import type { TodoNode } from "src/model"
+import type { GroupNode, TodoNode } from "src/model"
 
 export const useFarms = (
-	registerListener: (callback: (todoFarms: TodoNode[]) => void) => void,
+	registerListener: (callback: (todoFarms: GroupNode[]) => void) => void,
 ) => {
-	const [farms, setFarms] = useState<TodoNode[]>([])
+	const [farms, setFarms] = useState<GroupNode[]>([])
 	useEffect(() => {
 		return registerListener((farms) => setFarms(farms))
 	}, [registerListener])

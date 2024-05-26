@@ -1,5 +1,5 @@
 import { StrictMode } from "react"
-import type { TodoNode } from "src/model"
+import type { GroupNode } from "src/model"
 import { Card } from "./Card"
 import { CheckboxTodoSelector } from "./CheckboxTodoSelector"
 import { FileNameTodoSelector } from "./FileNameTodoSelector"
@@ -10,7 +10,7 @@ import { type SelectedTypeMap, useFarms, useSelectedTypeMap } from "./hooks"
 const c = bem()
 
 type Props = {
-	registerFarmListener: (callback: (todoFarms: TodoNode[]) => void) => void
+	registerFarmListener: (callback: (todoFarms: GroupNode[]) => void) => void
 	setSelectedTypeMapToViewState: (SelectedTypeMap: SelectedTypeMap) => void
 	selectedTypeMapHydration: SelectedTypeMap
 }
@@ -36,7 +36,14 @@ export const Selector = ({
 						const TodoSelector =
 							f.todoType === "checkbox"
 								? CheckboxTodoSelector
-								: FileNameTodoSelector
+								: f.todoType === "filename"
+									? FileNameTodoSelector
+									: () => {
+											console.error(
+												`invalid todoType: ${f.value} -> ${f.todoType}`,
+											)
+											return null
+										}
 						return (
 							<TodoSelector
 								key={f.value}

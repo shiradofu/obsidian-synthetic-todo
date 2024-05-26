@@ -1,10 +1,10 @@
 import type { CachedMetadata, ListItemCache, TFile } from "obsidian"
-import { CheckboxTodoNode, TodoNode } from "src/model"
+import { CheckboxTodoNode, GroupNode } from "src/model"
 
 type PartiallyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 
 export class CheckboxTodoParser {
-	private results: TodoNode[] = []
+	private farms = new Map<string, GroupNode>()
 
 	constructor(
 		private getFileCache: (file: TFile) => CachedMetadata | null,
@@ -16,8 +16,8 @@ export class CheckboxTodoParser {
 		const targets = this.extractTargetLines(file)
 		if (targets.length === 0) return false
 
-		const farm = new TodoNode(file.path)
-		let wipParcel = new TodoNode("")
+		const farm = new GroupNode(file.path, "file")
+		let wipParcel = new GroupNode("", "heading")
 		const lineNum2TodoMap = new Map<number, CheckboxTodoNode>()
 		const fileLines = (await this.readFile(file)).split("\n")
 
@@ -42,26 +42,23 @@ export class CheckboxTodoParser {
 				}
 				case "heading" in t: {
 					if (wipParcel.children.length > 0) farm.addChild(wipParcel)
-					wipParcel = new TodoNode(t.heading)
+					wipParcel = new GroupNode(t.heading, "heading")
 				}
 			}
 		}
 		if (wipParcel.children.length > 0) farm.addChild(wipParcel)
-		this.results.push(farm)
+		this.farms.set(farm.value, farm)
 		return true
 	}
 
 	public finish() {
-		for (const p of [...this.pinned].reverse()) {
-			const i = this.results.findIndex(({ value }) => value === p)
-			if (i === -1) continue
-			const shouldPinned = this.results.splice(i, 1)[0]
-			if (!shouldPinned) continue
-			this.results.unshift(shouldPinned)
-		}
-
-		const { results } = this
-		this.results = []
+		const results = this.pinned.flatMap((p) => {
+			const shouldPinned = this.farms.get(p)
+			this.farms.delete(p)
+			return shouldPinned ?? []
+		})
+		results.push(...this.farms.values())
+		this.farms.clear()
 		return results
 	}
 
@@ -74,10 +71,7 @@ export class CheckboxTodoParser {
 					item.task !== undefined,
 			) ?? []
 		if (tasks.length === 0) return []
-
-		const headings = cache.headings ?? []
-
-		return [...tasks, ...headings].sort(
+		return [...tasks, ...(cache.headings ?? [])].sort(
 			(a, b) => a.position.start.line - b.position.start.line,
 		)
 	}

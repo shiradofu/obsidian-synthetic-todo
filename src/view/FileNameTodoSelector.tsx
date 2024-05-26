@@ -1,4 +1,4 @@
-import { FilenameTodoNode, type TodoNode } from "src/model"
+import { FilenameTodoNode, type GroupNode } from "src/model"
 import { bem } from "./bem"
 import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
 
@@ -9,7 +9,7 @@ export const FileNameTodoSelector = ({
 	selectedTypeMap,
 	createSelectorHandler,
 }: {
-	farm: TodoNode
+	farm: GroupNode
 	selectedTypeMap: SelectedTypeMap
 	createSelectorHandler: SelectionHandlerCreator
 }) => {

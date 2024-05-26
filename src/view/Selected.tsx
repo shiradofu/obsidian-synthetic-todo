@@ -1,21 +1,18 @@
-import { Fragment, type HTMLAttributes, type ReactNode } from "react"
-import { CheckboxTodoNode, type TodoNode } from "src/model"
+import { type ComponentProps, Fragment } from "react"
+import type { GroupNode, TodoNode } from "src/model"
 import {
 	CheckboxTodoItem,
 	renderCheckboxTodoItemTree,
 } from "./CheckboxTodoItem"
 import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
 
-const RenderCheckboxIf = ({
+const RenderNodeIf = ({
 	cond,
 	children,
 	...props
 }: {
 	cond: boolean
-	children: ReactNode
-	todo: TodoNode
-	selectedType: string | undefined
-} & HTMLAttributes<HTMLLIElement>) =>
+} & ComponentProps<typeof CheckboxTodoItem>) =>
 	cond ? (
 		<CheckboxTodoItem {...props}>{children}</CheckboxTodoItem>
 	) : (
@@ -29,14 +26,14 @@ export const CheckboxTodoSelected = ({
 	groupByFileName,
 	groupByHeading,
 }: {
-	farm: TodoNode
+	farm: GroupNode
 	selectedTypeMap: SelectedTypeMap
 	createSelectedHandler: SelectionHandlerCreator
 	groupByFileName: boolean
 	groupByHeading: boolean
 }) => {
 	return (
-		<RenderCheckboxIf
+		<RenderNodeIf
 			cond={groupByFileName}
 			todo={farm}
 			selectedType={selectedTypeMap.get(farm.id)}
@@ -47,22 +44,22 @@ export const CheckboxTodoSelected = ({
 				const UL = cond && groupByFileName ? "ul" : Fragment
 				return (
 					<UL key={parcel.id}>
-						<RenderCheckboxIf
+						<RenderNodeIf
 							cond={cond}
 							todo={parcel}
 							selectedType={selectedTypeMap.get(parcel.id)}
 							onClick={createSelectedHandler(parcel)}
 						>
 							{renderCheckboxTodoItemTree(
-								parcel.children.filter(CheckboxTodoNode.mustBeCheckboxTodoNode),
+								parcel.children,
 								createSelectedHandler,
 								selectedTypeMap,
 							)}
-						</RenderCheckboxIf>
+						</RenderNodeIf>
 					</UL>
 				)
 			})}
-		</RenderCheckboxIf>
+		</RenderNodeIf>
 	)
 }
 
