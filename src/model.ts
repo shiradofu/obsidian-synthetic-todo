@@ -1,5 +1,5 @@
 type NodeType = "todo" | "group"
-type TodoType = "checkbox" | "filename"
+type TodoType = "checkbox" | "fileName"
 export type GroupType = "file" | "heading" | "tagOrfolder"
 
 export class TodoNode {
@@ -67,7 +67,7 @@ export class GroupNode extends TodoNode {
 
 export class TagOrFolderTodoNode extends GroupNode {
 	public nodeType = "group" as const
-	public children: FilenameTodoNode[] = []
+	public children: FileNameTodoNode[] = []
 
 	constructor(value: string) {
 		const groupType = "tagOrfolder" as const
@@ -115,7 +115,7 @@ export class CheckboxTodoNode extends TodoNode {
 	}
 }
 
-export class FilenameTodoNode extends TodoNode {
+export class FileNameTodoNode extends TodoNode {
 	public nodeType = "todo" as const
 
 	constructor(
@@ -126,14 +126,14 @@ export class FilenameTodoNode extends TodoNode {
 		super(trimmed)
 	}
 
-	public static mustBeFilenameTodoNode(arg: TodoNode): arg is FilenameTodoNode {
-		if (!(arg instanceof FilenameTodoNode)) {
-			throw new Error(`Not a filename todo: ${JSON.stringify(arg)}`)
+	public static mustBeFileNameTodoNode(arg: TodoNode): arg is FileNameTodoNode {
+		if (!(arg instanceof FileNameTodoNode)) {
+			throw new Error(`Not a fileName todo: ${JSON.stringify(arg)}`)
 		}
 		return true
 	}
 
 	public get todoType() {
-		return "filename" as const
+		return "fileName" as const
 	}
 }

@@ -16,13 +16,10 @@ const sortOrderOptions = {
 } as const
 export type SortOrder = keyof typeof sortOrderOptions
 
-const groupByFileNameOptions = {
-	none: "No grouping",
-	heading: "Heading",
-	treeParent: "Tree parent",
-} as const
-type GroupByFileName = keyof typeof groupByFileNameOptions
-
+export type SyntheGroupingSettings = {
+	groupByFileName: boolean
+	groupByHeading: boolean
+}
 type SyntheSettingsUnit = {
 	name: string
 	query: string
@@ -30,8 +27,7 @@ type SyntheSettingsUnit = {
 	pinned: string
 	tagsAndFoldersForFileNameTodos: string
 	checkboxStatus: string
-	groupByFileName: GroupByFileName
-}
+} & SyntheGroupingSettings
 type SettingsStore = {
 	synthe: SyntheSettingsUnit[]
 }
@@ -46,7 +42,8 @@ const emptySyntheSettingsUnit: SyntheSettingsUnit = {
 	pinned: "",
 	tagsAndFoldersForFileNameTodos: "",
 	checkboxStatus: "",
-	groupByFileName: "treeParent",
+	groupByFileName: true,
+	groupByHeading: true,
 }
 
 const addSpacerDiv = (el: HTMLElement, direction: "x" | "y", size: string) => {
@@ -195,8 +192,8 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			)
 
 		new Setting(unitContainer)
-			.setName("Filename Todos")
-			.setDesc("show filename intead of checkboxes")
+			.setName("FileName Todos")
+			.setDesc("show file name intead of checkboxes")
 			.addTextArea((t) =>
 				t
 					.setValue(data.tagsAndFoldersForFileNameTodos)
@@ -217,13 +214,17 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 			)
 
 		new Setting(unitContainer)
-			.setName("Group by Filename")
+			.setName("Group by FileName")
 			.setDesc("when write todos")
-			.addDropdown((d) =>
-				d
-					.addOptions(groupByFileNameOptions)
-					.setValue(data.groupByFileName)
-					.onChange(onChange("groupByFileName")),
+			.addToggle((t) =>
+				t.setValue(data.groupByFileName).onChange(onChange("groupByFileName")),
+			)
+
+		new Setting(unitContainer)
+			.setName("Group by Heading")
+			.setDesc("when write todos")
+			.addToggle((t) =>
+				t.setValue(data.groupByHeading).onChange(onChange("groupByHeading")),
 			)
 
 		addSpacerDiv(unitContainer, "x", "10px")
@@ -275,7 +276,7 @@ class SyntheticTodoSettingTab extends PluginSettingTab {
 	onChangeSyntheSettings =
 		(data: SyntheSettingsUnit) =>
 		<K extends keyof SyntheSettingsUnit>(key: K) =>
-		async (value: string) => {
+		async (value: string | boolean) => {
 			data[key] = value as SyntheSettingsUnit[K]
 			if (!this.validateSyntheSettings()) {
 				return

@@ -2,26 +2,26 @@ import { CheckboxTodoNode, type GroupNode } from "src/model"
 import { Card } from "./Card"
 import { renderCheckboxTodoItemTree } from "./CheckboxTodoItem"
 import { bem } from "./bem"
-import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
+import type { SelectedTypeMap, SelectionHandlerCreator } from "./useSelection"
 
 const c = bem("CheckboxTodoSelector")
 
 export const CheckboxTodoSelector = ({
 	farm,
 	selectedTypeMap,
-	createSelectorHandler,
+	createHandler,
 }: {
 	farm: GroupNode
 	selectedTypeMap: SelectedTypeMap
-	createSelectorHandler: SelectionHandlerCreator
+	createHandler: SelectionHandlerCreator
 }) => {
 	return (
 		<Card
 			title={
 				<span
 					className={c("card-title")}
-					onClick={createSelectorHandler(farm)}
-					onKeyDown={createSelectorHandler(farm)}
+					onClick={createHandler(farm)}
+					onKeyDown={createHandler(farm)}
 				>
 					{farm.value}
 				</span>
@@ -32,8 +32,8 @@ export const CheckboxTodoSelector = ({
 					<div
 						key={parcel.id}
 						className={c("parcel")}
-						onClick={createSelectorHandler(parcel)}
-						onKeyDown={createSelectorHandler(parcel)}
+						onClick={createHandler(parcel)}
+						onKeyDown={createHandler(parcel)}
 					>
 						{parcel.value !== "" && (
 							<h2 className={c("parcel-name")}>{parcel.value}</h2>
@@ -41,7 +41,7 @@ export const CheckboxTodoSelector = ({
 						<div>
 							{renderCheckboxTodoItemTree(
 								parcel.children.filter(CheckboxTodoNode.mustBeCheckboxTodoNode),
-								createSelectorHandler,
+								createHandler,
 								selectedTypeMap,
 							)}
 						</div>

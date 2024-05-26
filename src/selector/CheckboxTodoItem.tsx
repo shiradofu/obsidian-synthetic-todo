@@ -1,7 +1,7 @@
-import type { HTMLAttributes, ReactNode } from "react"
+import type { HTMLAttributes, MouseEventHandler, ReactNode } from "react"
 import { CheckboxTodoNode, type TodoNode } from "src/model"
 import { bem } from "./bem"
-import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
+import type { SelectedTypeMap } from "./useSelection"
 
 const c = bem("CheckboxTodoItem")
 
@@ -40,26 +40,24 @@ export const CheckboxTodoItem = ({
 
 export const renderCheckboxTodoItemTree = (
 	todos: TodoNode[],
-	createOnClick: SelectionHandlerCreator,
+	createOnClick: (todoNode: TodoNode) => MouseEventHandler,
 	selectedTypeMap: SelectedTypeMap,
 ) => (
 	<ul>
-		{todos.map((todo) => {
-			return (
-				<CheckboxTodoItem
-					key={todo.id}
-					todo={todo}
-					onClick={createOnClick(todo)}
-					selectedType={selectedTypeMap.get(todo.id)}
-				>
-					{todo.children.length > 0 &&
-						renderCheckboxTodoItemTree(
-							todo.children,
-							createOnClick,
-							selectedTypeMap,
-						)}
-				</CheckboxTodoItem>
-			)
-		})}
+		{todos.map((todo) => (
+			<CheckboxTodoItem
+				key={todo.id}
+				todo={todo}
+				onClick={createOnClick(todo)}
+				selectedType={selectedTypeMap.get(todo.id)}
+			>
+				{todo.children.length > 0 &&
+					renderCheckboxTodoItemTree(
+						todo.children,
+						createOnClick,
+						selectedTypeMap,
+					)}
+			</CheckboxTodoItem>
+		))}
 	</ul>
 )

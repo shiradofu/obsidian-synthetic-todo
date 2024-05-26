@@ -7,11 +7,11 @@ import {
 } from "obsidian"
 import { type Root, createRoot } from "react-dom/client"
 import type { GroupNode } from "src/model"
-import { Parser } from "../parser"
-import { createEmbeddedSearch } from "../search"
-import type { SortOrder } from "../settings"
-import { Selector } from "./Selector"
-import type { SelectedType, SelectedTypeMap } from "./hooks"
+import { Parser } from "./parser"
+import { createEmbeddedSearch } from "./search"
+import { SelectorUI } from "./selector"
+import type { SelectedType, SelectedTypeMap } from "./selector/useSelection"
+import type { SortOrder } from "./settings"
 
 const t = "synthetic-todo-view" as const
 
@@ -98,7 +98,7 @@ export class SyntheticTodoView extends ItemView {
 		const reactEl = container.createEl("div")
 		this.reactRoot = createRoot(reactEl)
 		this.reactRoot.render(
-			<Selector
+			<SelectorUI
 				registerFarmListener={this.registerFarmListener}
 				setSelectedTypeMapToViewState={this.setSelectedTypeMapToViewState}
 				selectedTypeMapHydration={this.selectedTypeMap}

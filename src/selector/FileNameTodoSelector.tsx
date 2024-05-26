@@ -1,24 +1,24 @@
-import { FilenameTodoNode, type GroupNode } from "src/model"
+import { FileNameTodoNode, type GroupNode } from "src/model"
 import { bem } from "./bem"
-import type { SelectedTypeMap, SelectionHandlerCreator } from "./hooks"
+import type { SelectedTypeMap, SelectionHandlerCreator } from "./useSelection"
 
 const c = bem("FileNameTodoSelector")
 
 export const FileNameTodoSelector = ({
 	farm,
 	selectedTypeMap,
-	createSelectorHandler,
+	createHandler,
 }: {
 	farm: GroupNode
 	selectedTypeMap: SelectedTypeMap
-	createSelectorHandler: SelectionHandlerCreator
+	createHandler: SelectionHandlerCreator
 }) => {
 	return (
 		<div className={c()}>
 			<h1 className={c("tag-or-folder")}>{farm.value}</h1>
 			<ul className={c("items")}>
 				{farm.children
-					.filter(FilenameTodoNode.mustBeFilenameTodoNode)
+					.filter(FileNameTodoNode.mustBeFileNameTodoNode)
 					.map((todo) => {
 						const selectedType = selectedTypeMap.get(todo.id)
 						const selectedAs = selectedType
@@ -28,8 +28,8 @@ export const FileNameTodoSelector = ({
 							<li
 								key={todo.id}
 								className={`${c("item")} ${selectedAs}`}
-								onClick={createSelectorHandler(todo)}
-								onKeyDown={createSelectorHandler(todo)}
+								onClick={createHandler(todo)}
+								onKeyDown={createHandler(todo)}
 							>
 								{todo.img ? (
 									<img src={todo.img} alt={todo.value} />

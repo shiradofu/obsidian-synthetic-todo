@@ -1,7 +1,7 @@
 import type { TFile } from "obsidian"
 import { imgExts } from "src/constants"
 import {
-	FilenameTodoNode,
+	FileNameTodoNode,
 	type GroupNode,
 	TagOrFolderTodoNode,
 } from "src/model"
@@ -35,7 +35,7 @@ export class FileNameTodoParser {
 			this.folders.find((folder) => file.path.startsWith(folder))
 		if (matched === undefined) return false
 
-		const newTodo = new FilenameTodoNode(file.path, this.getFirstImage(file))
+		const newTodo = new FileNameTodoNode(file.path, this.getFirstImage(file))
 		const farm = this.farms.get(matched)
 		farm !== undefined
 			? farm.addChild(newTodo)
